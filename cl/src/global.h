@@ -1,0 +1,75 @@
+#pragma once
+#include "Controller.h"
+#include <filesystem>
+#include <foresteamnd/TCPClient>
+#ifdef _WIN32
+#include <windows.h>
+
+#include <gdiplus.h>
+#endif
+
+extern TCPClient* client;
+extern Controller* controller;
+
+struct Config {
+  std::string host;
+  short port;
+  bool hideWindow;
+  std::wstring appName;
+  std::wstring appTaskName;
+  std::wstring targetExecutableName;
+  std::wstring uninstallScriptName;
+};
+
+extern Config appConfig;
+
+enum Error {
+  ERROR_UNKNOWN = 1,
+  ERROR_INSTALLER_ALREADY_INSTALLED,
+  ERROR_INSTALLER_NOT_INSTALLED,
+  ERROR_INSUFFICIENT_ADMIN_PERMISSIONS,
+  ERROR_REG_KEY_OPEN,
+  ERROR_REG_KEY_DELETE,
+  ERROR_REG_WRITE_STRING,
+  ERROR_REG_WRITE_DWORD,
+  ERROR_REG_READ_STRING,
+  ERROR_REG_READ_DWORD,
+  ERROR_INSTALLER_INSTALL_CREATE_UNINSTALL_BATCH,
+  ERROR_INSTALLER_INSTALL_CREATE_INSTALL_DIRECTORY,
+  ERROR_INSTALLER_INSTALL_CREATE_DESTINATION_PATH,
+  ERROR_INSTALLER_INSTALL_COPY_SELF,
+  ERROR_INSTALLER_INSTALL_LAUNCH_NEW_INSTANCE,
+  ERROR_INSTALLER_ALREADY_INSTALLED_MOVE_SELF,
+  ERROR_INSTALLER_UNINSTALL_BATCH_MISSING,
+  ERROR_ERROR_INSTALLER_LAUNCH_UNINSTALL,
+  ERROR_COM_INIT,
+  ERROR_TASK_SERVICE_CREATE,
+  ERROR_TASK_SERVICE_CONNECT,
+  ERROR_TASK_FOLDER_ACCESS,
+  ERROR_TASK_DEFINITION_CREATE,
+  ERROR_TASK_PRINCIPAL_SETUP,
+  ERROR_TASK_TRIGGER_SETUP,
+  ERROR_TASK_LOGON_TRIGGER_CREATE,
+  ERROR_TASK_ACTION_SETUP,
+  ERROR_TASK_EXEC_ACTION_CREATE,
+  ERROR_TASK_COMMAND_SETUP,
+  ERROR_TASK_EXEC_ACTION_QUERY,
+  ERROR_TASK_REGISTRATION,
+  ERROR_TASK_DELETION,
+  ERROR_ELEVATION,
+  ERROR_PROCESS_ENUMERATION,
+  ERROR_PROCESS_TERMINATION,
+  ERROR_PROCESS_ACCESS_DENIED
+};
+class Exception : public std::runtime_error {
+public:
+private:
+  Error code;
+  uint64_t code2;
+  std::string message;
+
+public:
+  explicit Exception(Error code, uint64_t code2 = 0, const std::string& message = "");
+  void Log();
+  Error GetErrorCode();
+};

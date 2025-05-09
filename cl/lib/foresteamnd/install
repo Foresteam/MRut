@@ -1,0 +1,10 @@
+#!/bin/bash
+mkdir /usr/local/include/foresteamnd
+rm /usr/local/include/foresteamnd/*
+cp src/*.h /usr/local/include/foresteamnd
+cp src/*.tcc /usr/local/include/foresteamnd
+cp build/libforesteamnd.a /usr/local/lib
+cd /usr/local/include/foresteamnd/
+find ./ -maxdepth 1 -name '*.h' | while read file; do ln -r -s "$file" "${file%.*}"; done
+find ./ -maxdepth 1 -name '*.tcc' | while read file; do ln -f -r -s "$file" "${file%.*}"; done
+echo Done

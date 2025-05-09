@@ -1,0 +1,28 @@
+BasedOnStyle: LLVM
+BreakBeforeBraces: Custom
+ColumnLimit: 160      # Disable line wrapping
+NamespaceIndentation: All
+PointerAlignment: Left
+BraceWrapping:
+  AfterControlStatement: Never
+  AfterFunction: false
+  AfterClass: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterNamespace: false
+  AfterEnum: false
+  AfterExternBlock: false
+  BeforeElse: true
+  BeforeWhile: false
+  BeforeCatch: true
+  BeforeLambdaBody: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+
+Cpp11BracedListStyle: false
+BreakBeforeBracedList: Always
+SpaceBeforeCpp11BracedList: true

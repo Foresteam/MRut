@@ -1,0 +1,4 @@
+#!/bin/bash
+rm /usr/local/lib/libforesteamnd.a
+rm -r /usr/local/include/foresteamnd
+echo Done

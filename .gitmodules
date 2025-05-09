@@ -1,0 +1,12 @@
+[submodule "cl/AES"]
+	path = cl/AES
+	url = https://github.com/SergeyBel/AES.git
+[submodule "cl/plusaes"]
+	path = cl/lib/plusaes
+	url = https://github.com/kkAyataka/plusaes.git
+[submodule "cl/lib/foresteamnd"]
+	path = cl/lib/foresteamnd
+	url = git@github.com:Foresteam/foresteamnd.git
+[submodule "cl/lib/LuaBridge"]
+	path = cl/lib/LuaBridge
+	url = https://github.com/vinniefalco/LuaBridge.git

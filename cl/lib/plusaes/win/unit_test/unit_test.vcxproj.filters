@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{bf6bd4a2-ae25-4893-ae1d-fed9c2eeb90f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{c9c36db9-070c-455f-bf0d-810c211e484f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\include">
+      <UniqueIdentifier>{9d4d8edb-d6c8-4e3d-8681-9e598d5f1155}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\include\plusaes">
+      <UniqueIdentifier>{c3cff6dc-c372-4146-b8d2-7e5d7a50ad37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\include\gtest">
+      <UniqueIdentifier>{c40ce8e7-3c90-418a-b3dc-f3bd3ce49227}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\gtest">
+      <UniqueIdentifier>{589bd606-ee02-4331-9ad3-6301a92c6bec}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\plusaes\plusaes.hpp">
+      <Filter>lib\include\plusaes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\unit_test\lib\include\gtest\gtest.h">
+      <Filter>lib\include\gtest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\unit_test\src\util.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\unit_test\src\test-plusaes.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\unit_test\src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\unit_test\src\gtest\gtest-all.cc">
+      <Filter>src\gtest</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\unit_test\src\test-ctr.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\unit_test\src\test-inc.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\unit_test\src\test-gcm.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

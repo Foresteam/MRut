@@ -1,0 +1,21 @@
+#!/bin/bash
+mkdir extracted
+rm -rf extracted/*
+mkdir extracted/include
+mkdir extracted/include/foresteamnd
+mkdir extracted/lib
+cp src/*.h extracted/include/foresteamnd
+cp src/*.tcc extracted/include/foresteamnd
+
+read -p "Are you using Шindows (y/n)? " -n 1 -r
+echo    
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # windows
+    cp build/libforesteamnd.a extracted/lib
+else
+    # linux
+    cp build/libforesteamnd.a extracted/lib
+fi
+cd extracted/include/foresteamnd/
+find ./ -maxdepth 1 -name '*.h' | while read file; do ln -r -s "$file" "${file%.*}"; done
+find ./ -maxdepth 1 -name '*.tcc' | while read file; do ln -f -r -s "$file" "${file%.*}"; done

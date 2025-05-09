@@ -1,0 +1,13 @@
+.vscode
+build
+out
+.vs
+lib/lua/build
+lib/lua/lua-5.4.4/*.o
+lib/lua/lua-5.4.4/*.obj
+lib/lua/lua-5.4.4/*.a
+lib/lua/lua-5.4.4/*.dll
+lib/lua/lua-5.4.4/*.lib
+lib/lua/lua-5.4.4/*.so
+lib/lua/lua-5.4.4/lua
+lib/lua/lua-5.4.4/lua.exe
