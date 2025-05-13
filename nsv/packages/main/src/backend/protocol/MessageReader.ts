@@ -9,12 +9,14 @@ export class MessageReader {
   #received?: bigint;
   #messageBodySize?: bigint;
   #outputFile?: string;
+  #fileExpectations: string[];
   #expectation: 'action' | 'binary';
   #action?: Action;
   #fileStream?: fs.WriteStream;
 
   constructor() {
     this.#data = Buffer.alloc(0);
+    this.#fileExpectations = [];
     this.#expectation = 'action';
   }
 
@@ -22,7 +24,7 @@ export class MessageReader {
     return !!this.#outputFile;
   }
   expectFile(name: string) {
-    this.#outputFile = name;
+    this.#fileExpectations.push(name);
   }
   expectBinary() {
     this.#expectation = 'binary';
@@ -68,6 +70,9 @@ export class MessageReader {
       this.#data = Buffer.concat([new Uint8Array(this.#data), new Uint8Array(data)]);
 
       if (this.#data.length >= headerLength) {
+        if (this.#fileExpectations.length)
+          [this.#outputFile] = this.#fileExpectations.splice(0, 1);
+
         const messageBodySize = this.#data.readBigUInt64LE() - BigInt(actionLength);
         if (this.#expectation !== 'binary')
           this.#action = Number(this.#data.at(lengthLength)) as Action;

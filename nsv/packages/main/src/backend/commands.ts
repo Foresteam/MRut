@@ -17,7 +17,7 @@ const commands = {
 		[{ type: 'string', name: 'src' }, { type: 'string|', name: 'dst' }],
 		'Download remote file',
 		({ args: { src, dst } }: { args: { src: string, dst: string } }): CommandFunction => (clients, netQ) => clients.forEach(v => {
-			netQ(v).push([() => v.expectFile(dst || basename(src.replaceAll('\\', '/'))), `SendFile('${src}')`]);
+			netQ(v).push([() => v.expectFile(dst || basename(src.replaceAll('\\', '/'))), `SendFile('${src}'); Print('send')`]);
 		})),
 	upload: new Command(
 		['upload'],

@@ -184,8 +184,8 @@ export function setupIPC() {
 			ipcEmit('setUser', u.public.id, u.public);
 		console.log('Users synced');
 	});
-	ipcHandle('openFilePicker', async (_, multiple = false) => {
-		const properties: Parameters<typeof dialog.showOpenDialog>[0]['properties'] = ['openFile'];
+	ipcHandle('openFilePicker', async (_, multiple = false, directory = false) => {
+		const properties: Parameters<typeof dialog.showOpenDialog>[0]['properties'] = [directory ? 'openDirectory' : 'openFile'];
 		if (multiple) {
 			properties.push('multiSelections');
 		}

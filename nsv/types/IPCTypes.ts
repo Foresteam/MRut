@@ -8,7 +8,7 @@ export interface BackendAPI {
 	getUsers: () => Promise<IUser[]>;
 	updateUser: (id: number, user: Partial<IUser>) => Promise<any>;
 	onLoad: () => Promise<any>;
-	openFilePicker: <T extends boolean = false>(multiple?: T) => Promise<(T extends true ? string[] : string) | null>;
+	openFilePicker: <T extends boolean = false>(multiple?: T, directory?: boolean) => Promise<(T extends true ? string[] : string) | null>;
 
 	sendMouseButton: (params: { button: MouseButton; state: boolean; applyToAll?: boolean }) => Promise<void>;
 	sendMouseScroll: (params: { pixels: number; applyToAll?: boolean }) => Promise<void>;

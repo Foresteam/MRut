@@ -40,7 +40,7 @@ export const fileSchema = z.union([
 	}),
 ]);
 export type IFile = z.infer<typeof fileSchema>;
-export const deviceSchema = z.object({ path: z.string(), type: z.enum(['Unknown', 'Fixed', 'Removable', 'Network', 'CD - ROM', 'RAM Disk']), totalSpace: z.number(), freeSpace: z.number() });
+export const deviceSchema = z.object({ path: z.string(), type: z.enum(['Unknown', 'Fixed', 'Removable', 'Network', 'CD-ROM', 'RAM Disk']), totalSpace: z.number(), freeSpace: z.number() });
 export type IDevice = z.infer<typeof deviceSchema>;
 export const placeSchema = z.object({ name: z.enum(['Home', 'Desktop', 'Downloads', 'Documents', 'Pictures', 'Videos']), path: z.string() });
 export type IPlace = z.infer<typeof placeSchema>;
