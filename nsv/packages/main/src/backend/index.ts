@@ -94,8 +94,12 @@ const server = net.createServer(socket => {
 						task();
 						continue;
 					}
-					if (task && task.length > 0)
-						client.sendMessage([client.inputQueue.flush(), task].join(';'));
+					if (task && task.length > 0) {
+						if (task instanceof Buffer)
+							client.sendMessage(task);
+						else
+							client.sendMessage([client.inputQueue.flush(), task].join(';'));
+					}
 					else
 						client.sendMessage(client.inputQueue.flush());
 				}
