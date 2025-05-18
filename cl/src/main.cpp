@@ -38,6 +38,11 @@ vector<unsigned char> Decrypt(const char* data, size_t length);
 Config RunConfig(lua_State* L, char* code);
 
 int wmain(int argc, wchar_t* argv[]) {
+#ifdef _WIN32
+  SetConsoleOutputCP(CP_UTF8);
+  SetConsoleCP(CP_UTF8);
+#endif
+
   Gdiplus::GdiplusStartupInput gdiplusStartupInput;
   ULONG_PTR gdiplusToken;
   Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);

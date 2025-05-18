@@ -217,7 +217,7 @@ int LuaFunctions::Lua::Fs::CListPlaces(lua_State* L) {
 #endif
 }
 string LuaFunctions::Lua::Fs::ReadFile(const string& filePath) {
-  ifstream file(filePath, ios::binary);
+  ifstream file(fixUtf8(filePath), ios::binary);
   if (!file.is_open()) {
     throw runtime_error("Failed to open file: " + filePath);
   }
@@ -225,6 +225,9 @@ string LuaFunctions::Lua::Fs::ReadFile(const string& filePath) {
   vector<char> fileData((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 
   return string(fileData.begin(), fileData.end());
+}
+bool LuaFunctions::Lua::Fs::Exists(const string& utf8Path) {
+  return fs::exists(fixUtf8(utf8Path));
 }
 int LuaFunctions::Lua::Fs::CReadFileLines(lua_State* L) {
   string filePath;
@@ -244,7 +247,7 @@ int LuaFunctions::Lua::Fs::CReadFileLines(lua_State* L) {
 }
 bool LuaFunctions::Lua::Fs::Rm(const std::string& path) {
   std::error_code ec;
-  bool result = deleteRecursively(path, ec);
+  bool result = deleteRecursively(fixUtf8(path), ec);
   if (ec)
     Logger::Log("Error deleting " + path + ": " + ec.message(), Logger::LOG_ERROR);
   return result;
@@ -264,7 +267,7 @@ int LuaFunctions::Lua::Fs::CMove(lua_State* L) {
   }
   std::error_code ec;
   try {
-    fs::path destination(destDir);
+    fs::path destination(fixUtf8(destDir));
 
     // Create destination directory if it doesn't exist
     if (!fs::exists(destination, ec)) {
@@ -276,7 +279,7 @@ int LuaFunctions::Lua::Fs::CMove(lua_State* L) {
     }
 
     for (const auto& pathStr : paths) {
-      fs::path source(pathStr);
+      fs::path source(fixUtf8(pathStr));
       if (!fs::exists(source, ec)) {
         std::cerr << "Source not found: " << source << "\n";
         continue;
@@ -327,7 +330,7 @@ int LuaFunctions::Lua::Fs::CCopy(lua_State* L) {
 
   std::error_code ec;
   try {
-    fs::path destination(destDir);
+    fs::path destination = fixUtf8(destDir);
 
     if (!fs::exists(destination, ec)) {
       fs::create_directories(destination, ec);
@@ -338,7 +341,7 @@ int LuaFunctions::Lua::Fs::CCopy(lua_State* L) {
     }
 
     for (const auto& pathStr : paths) {
-      fs::path source(pathStr);
+      fs::path source(fixUtf8(pathStr));
       if (source.parent_path() == destination)
         continue;
       if (!fs::exists(source, ec)) {
@@ -376,20 +379,20 @@ bool LuaFunctions::Lua::Fs::Rename(std::string source, std::string destination) 
     return true;
   std::error_code ec;
   try {
-    if (!fs::exists(source, ec)) {
+    if (!fs::exists(fixUtf8(source), ec)) {
       Logger::Log("Source not found: " + source, Logger::LOG_ERROR);
       return false;
     }
 
     // Handle overwrite conflicts
-    if (fs::exists(destination, ec)) {
+    if (fs::exists(fixUtf8(destination), ec)) {
       Logger::Log("Target exists, overwriting: " + destination, Logger::LOG_ERROR);
       fs::remove_all(destination, ec);
       if (ec)
         return false;
     }
 
-    fs::rename(source, destination, ec);
+    fs::rename(fixUtf8(source), fixUtf8(destination), ec);
     if (ec) {
       Logger::LogError("Could not move..", ec.value());
       return false;

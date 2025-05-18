@@ -21,6 +21,11 @@ namespace LuaFunctions {
   bool sendFile(const int code, char* buffer, size_t size);
   string GetKnownFolderPath(const KNOWNFOLDERID& folderId);
   std::vector<std::string> luaGetStringArray(lua_State* L, int index);
+#ifdef _WIN32
+  wstring fixUtf8(const std::string&);
+#else
+  string fixUtf8(const std::string&);
+#endif
 
   struct DiskInfo {
     std::string name;    // e.g. "C:"
@@ -64,6 +69,7 @@ namespace LuaFunctions {
       int CListDisks(lua_State* L);
       int CListPlaces(lua_State* L);
       string ReadFile(const string& filePath);
+      bool Exists(const string& filePath);
       int CReadFileLines(lua_State* L);
       bool Rm(const std::string& path);
       int CMove(lua_State* L);

@@ -1,4 +1,5 @@
 #include "LuaFunctions.h"
+#include "../helpers/GeneralHelpers.h"
 
 std::vector<std::string> LuaFunctions::luaGetStringArray(lua_State* L, int index) {
   std::vector<std::string> result;
@@ -33,6 +34,16 @@ bool ConfirmWrapper(const std::string& title, const std::string& text, int type)
   return LuaFunctions::Lua::System::Dialog::Confirm(title, text, static_cast<LuaFunctions::Lua::System::MessageBoxType>(type));
 }
 
+#ifdef _WIN32
+wstring LuaFunctions::fixUtf8(const std::string& string) {
+  return GlobalHelpers::StringToWstring(string);
+}
+#else
+string LuaFunctions::fixUtf8(const std::string& string) {
+  return string;
+}
+#endif
+
 void LuaFunctions::Register(lua_State* L) {
   getGlobalNamespace(L)
       .addFunction("_Exec", LuaFunctions::Lua::System::Exec)
@@ -61,6 +72,7 @@ void LuaFunctions::Register(lua_State* L) {
       .endNamespace()
       .beginNamespace("fs")
       .addFunction("ReadFile", LuaFunctions::Lua::Fs::ReadFile)
+      .addFunction("Exists", LuaFunctions::Lua::Fs::Exists)
       .addFunction("Rm", LuaFunctions::Lua::Fs::Rm)
       .addFunction("Rename", LuaFunctions::Lua::Fs::Rename)
       .addCFunction("ListDirectory", LuaFunctions::Lua::Fs::CListDirectory)

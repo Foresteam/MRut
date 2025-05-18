@@ -19,7 +19,7 @@ bool LuaFunctions::Lua::Net::Send(const int& code, const string& data) {
   return client->SendData((char)code + data);
 }
 bool LuaFunctions::Lua::Net::SendFile(const int& code, const string& path) {
-  ifstream file(path, ios::binary | ios::ate);
+  ifstream file(fixUtf8(path), ios::binary | ios::ate);
   size_t size = file.tellg();
   file.seekg(0, ios::beg);
   char* buffer = new char[size];
@@ -45,7 +45,7 @@ bool LuaFunctions::Lua::Net::ReceiveFile(const string& path) {
   char* buf = client->ReceiveRawData(&sz);
   if (!buf)
     return false;
-  ofstream file(path.c_str(), ios::binary);
+  ofstream file(fixUtf8(path), ios::binary);
   file.write(buf, sz);
   file.close();
   delete[] buf;

@@ -86,9 +86,7 @@ string.split = function(inputstr, sep)
 end
 
 function FileExists(filename)
-	local f = io.open(filename, "r")
-	if f then f:close() end
-	return f ~= nil
+	return fs.Exists(filename)
 end
 -- function FileRead(filename)
 -- 	local file = io.open(filename, 'rb')
@@ -107,6 +105,7 @@ function SendFile(filename)
 		net.SendFile(ACTIONS.FILE, filename)
 	else
 		Print('File doesn\'t seem to exist')
+		print('File doesn\'t seem to exist ' .. filename)
 	end
 end
 function ReceiveFile(filename)

@@ -4,6 +4,10 @@ project(rut VERSION 0.1.0)
 #-------------------------------------------------------------------------------
 # Compiler Configuration
 #-------------------------------------------------------------------------------
+if(MSVC)
+    add_compile_options(/utf-8)  # Source files are UTF-8 encoded
+    add_definitions(-D_UNICODE -DUNICODE)  # Enable Unicode APIs
+endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -82,6 +86,7 @@ add_executable(rut
     src/luaFunctions/LuaFunctions.cpp
     src/Screenshot.cpp
     src/main.cpp
+    rut.rc 
 )
 
 #-------------------------------------------------------------------------------
