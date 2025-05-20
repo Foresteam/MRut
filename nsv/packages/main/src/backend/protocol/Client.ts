@@ -3,34 +3,36 @@ import type { Socket } from 'net';
 import type { Message } from './Message';
 import { MessageReader } from './MessageReader';
 import InputQueue from './InputQueue';
+import _ from 'lodash';
+import * as db from '../Db';
 
 let idCounter = 0;
 type OnMessageHook<T extends Message = Message> = (message: T) => Promise<void> | void;
 type CommandQueueEntry = string | Buffer | (() => unknown | Promise<unknown>);
 type AnyClass = new (...args: any[]) => any;
-export class Client {
+export class Client implements db.Serializable<IUser> {
   readonly inputQueue: InputQueue;
   netQueue: { queuedCommandId: number, command: keyof Commands | undefined, queue: (CommandQueueEntry | CommandQueueEntry[])[] }[];
   public: IUser;
-  #socket: Socket;
+  #socket: Socket | null;
 
   #reader: MessageReader | undefined;
   #onMessage: [AnyClass, OnMessageHook][];
 
-  constructor(socket: Socket) {
+  constructor(socket?: Socket) {
     this.netQueue = [];
-    this.#socket = socket;
+    this.#socket = socket ?? null;
     this.#onMessage = [];
     this.inputQueue = new InputQueue(this);
     this.public = {
       id: idCounter++,
-      address: socket.remoteAddress?.replaceAll('::ffff:', '') || '',
+      address: socket?.remoteAddress?.replaceAll('::ffff:', '') || '',
       connected: true,
       online: true,
       processing: false,
       streaming: false,
     };
-    this.onReconnect(socket);
+    socket && this.onReconnect(socket);
   }
   onReconnect(socket: Socket) {
     this.#socket = socket;
@@ -51,9 +53,13 @@ export class Client {
     });
   }
   close() {
+    if (!this.#socket)
+      throw new Error(`Socket was never loaded: ${JSON.stringify(this.public)}`);
     this.#socket.end();
   }
   sendMessage(data: string | Buffer): void {
+    if (!this.#socket)
+      throw new Error(`Socket was never loaded: ${JSON.stringify(this.public)}`);
     const buf = data ? Uint8Array.from(data instanceof Buffer ? data : Buffer.from(data, 'utf-8')) : new Uint8Array([0]);
     // mb Buffer.byteLength()?
     const sizeBuf = Buffer.alloc(8);
@@ -74,4 +80,30 @@ export class Client {
       throw new Error('No reader?!');
     this.#reader.expectBinary();
   }
+
+  static setIdCounter(value: number) {
+    idCounter = value;
+  }
+  static deserialize(data: IUser) {
+    const client = new Client();
+    Object.assign(client.public, { ...data, online: false, streaming: false, processing: false } satisfies IUser);
+    return client;
+  }
+  serialize() {
+    return _.cloneDeep(this.public);
+  }
+  save() {
+    db.set('Client', this.public.id.toString(), this.serialize());
+  }
+
+  static loadAll() {
+    const clientsData = db.getAll('Client').map(v => v[1]);
+    const clients = _.sortBy(clientsData.map(data => Client.deserialize(data as IUser)), client => client.public.id);
+    const maxIndex = clients.at(-1)?.public.id;
+    if (maxIndex !== undefined)
+      Client.setIdCounter(maxIndex + 1);
+    return clients;
+  }
 }
+/** @brief Typecheck */
+<db.SerializableStatic<IUser, Client>>Client;

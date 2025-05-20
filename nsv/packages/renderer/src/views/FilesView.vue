@@ -140,9 +140,9 @@ const download = async () => {
 		summary: l().success,
 		detail: l().filesDownloaded,
 		life: 3000,
-	})
+	});
 	loading.value = false;
-}
+};
 const runAsScript = () => {
 	for (const file of selectedFiles.value)
 		window.backend.exec(`${'run' satisfies keyof Commands} RunFileAsScript('${file.path.replaceAll('\'', '\\\'')}')`);
@@ -389,90 +389,198 @@ const formatFileSize = (fileSize: number): string => {
 </script>
 
 <template>
-	<div class="flex-col" style="height: 100%">
-		<div class="flex-row ui-block-b ui-block set-wrapper">
-			<UsersDropdown v-model="store._targetUser" style="flex-grow: 1" />
-			<p-btn-toggle v-model="applyForAll" :on-label="l().applyToAll" :off-label="l().applyToAll" on-icon="pi pi-check"
-				off-icon="pi pi-times" style="width: 160px" />
-		</div>
-		<div class="flex-row ui-block-v set-wrapper ui-block-v ui-block">
-			<p-btn icon="pi pi-arrow-left" :disabled="!history.canGoBack.value" :title="l().fileManager.topPanel.buttonBack"
-				@click="history.back()" />
-			<p-btn icon="pi pi-arrow-right" :disabled="!history.canGoForward.value"
-				:title="l().fileManager.topPanel.buttonForward" @click="history.forward()" />
-			<p-btn icon="pi pi-arrow-up" :disabled="!hasTop" :title="l().fileManager.topPanel.buttonToTop" @click="goToTop" />
-			<p-btn icon="pi pi-refresh" :title="l().fileManager.topPanel.buttonRefresh" @click="history.refresh" />
-			<p-btn icon="pi pi-upload" :title="l().fileManager.topPanel.buttonUpload" @click="upload" />
-			<p-input-text v-model="path" style="flex-grow: 1" placeholder="Here must've been path..."
-				@keyup.enter="history.push(path)" @focusout="history.push(path)" />
-		</div>
-		<div class="flex-row" style="flex-grow: 1; overflow: hidden;">
-			<div class="flex-col" style="min-width: 200px;">
-				<p-listbox id="files-places" :options="places" class="ui-block ui-block-v" :empty-message="l().emptyList">
-					<template #header>
-						<div class="listbox-header">
-							{{ l().places }}
-						</div>
-					</template>
-					<template #option="slotProps">
-						<div style="text-align: left" @click="history.push(slotProps.option.path)">
-							<i :class="getIconClasses(slotProps.option.icon)"></i>
-							{{ slotProps.option.name }}
-						</div>
-					</template>
-				</p-listbox>
-				<p-listbox id="files-devices" :options="devices" class="ui-block ui-block-t" :empty-message="l().emptyList"
-					style="flex-grow: 1">
-					<template #header>
-						<div class="listbox-header">
-							{{ l().devices }}
-						</div>
-					</template>
-					<template #option="slotProps">
-						<div style="text-align: left" @click="history.push(slotProps.option.path)">
-							<i class="pi fi fi-disk"></i>
-							{{ slotProps.option.path }}
-						</div>
-					</template>
-				</p-listbox>
-			</div>
-			<div id="file-manager" class="ui-block ui-block-t">
-				<p-listbox ref="fileManager" v-model="selectedFiles" :options="files" :empty-message="l().emptyList" multiple
-					meta-key-selection style="height: 100%; overflow: auto;" @contextmenu="filesRightClick">
-					<template #option="slotProps">
-						<div style="text-align: left" class="flex-row"
-							@dblclick="slotProps.option.type === 'dir' && history.push(slotProps.option.path)">
-							<div style="width: 70%">
-								<i :class="getFileIconClasses(slotProps.option.type)"></i>
-								{{ slotProps.option.name }}
-							</div>
-							<div style="width: 15%">
-								<template v-if="slotProps.option.type === 'file'">{{ formatFileSize(slotProps.option.size) }}</template>
-							</div>
-							<div style="width: 15%">{{ formatDate(slotProps.option.dateModified) }}</div>
-						</div>
-					</template>
-				</p-listbox>
-				<div id="file-manager-action-buttons">
-					<p-btn icon="pi pi-folder" :title="l().fileManager.new.newFolder" @click="newFolder()" />
-					<p-btn icon="pi pi-file" :title="l().fileManager.new.newFile" @click="newFile()" />
-				</div>
-			</div>
-			<p-context-menu ref="filesCtxMenu" :model="fileCtx" />
-			<InputDialog ref="filesRenameDialog" :query="l().newFileName"
-				:title="l().fileManager.dialog.renameFilesTitle(selectedFiles?.length || 0)"
-				:initial-value="lastSelectedFile?.name || ''" :help-text="l().newFileNameHelp" @submit="doRenameFiles" />
-			<InputDialog ref="newFileDialog" :title="l().fileManager.new.newFile"
-				:query="l().fileManager.new.dialog.newFileQuery" @submit="doNewFile" />
-			<InputDialog ref="newFolderDialog" :title="l().fileManager.new.newFolder"
-				:query="l().fileManager.new.dialog.newFolderQuery" @submit="doNewFolder" />
+  <div
+    class="flex-col"
+    style="height: 100%"
+  >
+    <div class="flex-row ui-block-b ui-block set-wrapper">
+      <UsersDropdown
+        v-model="store._targetUser"
+        style="flex-grow: 1"
+      />
+      <p-btn-toggle
+        v-model="applyForAll"
+        :on-label="l().applyToAll"
+        :off-label="l().applyToAll"
+        on-icon="pi pi-check"
+        off-icon="pi pi-times"
+        style="width: 160px"
+      />
+    </div>
+    <div class="flex-row ui-block-v set-wrapper ui-block-v ui-block">
+      <p-btn
+        icon="pi pi-arrow-left"
+        :disabled="!history.canGoBack.value"
+        :title="l().fileManager.topPanel.buttonBack"
+        @click="history.back()"
+      />
+      <p-btn
+        icon="pi pi-arrow-right"
+        :disabled="!history.canGoForward.value"
+        :title="l().fileManager.topPanel.buttonForward"
+        @click="history.forward()"
+      />
+      <p-btn
+        icon="pi pi-arrow-up"
+        :disabled="!hasTop"
+        :title="l().fileManager.topPanel.buttonToTop"
+        @click="goToTop"
+      />
+      <p-btn
+        icon="pi pi-refresh"
+        :title="l().fileManager.topPanel.buttonRefresh"
+        @click="history.refresh"
+      />
+      <p-btn
+        icon="pi pi-upload"
+        :title="l().fileManager.topPanel.buttonUpload"
+        @click="upload"
+      />
+      <p-input-text
+        v-model="path"
+        style="flex-grow: 1"
+        placeholder="Here must've been path..."
+        @keyup.enter="history.push(path)"
+        @focusout="history.push(path)"
+      />
+    </div>
+    <div
+      class="flex-row"
+      style="flex-grow: 1; overflow: hidden;"
+    >
+      <div
+        class="flex-col"
+        style="min-width: 200px;"
+      >
+        <p-listbox
+          id="files-places"
+          :options="places"
+          class="ui-block ui-block-v"
+          :empty-message="l().emptyList"
+        >
+          <template #header>
+            <div class="listbox-header">
+              {{ l().places }}
+            </div>
+          </template>
+          <template #option="slotProps">
+            <div
+              style="text-align: left"
+              @click="history.push(slotProps.option.path)"
+            >
+              <i :class="getIconClasses(slotProps.option.icon)"></i>
+              {{ slotProps.option.name }}
+            </div>
+          </template>
+        </p-listbox>
+        <p-listbox
+          id="files-devices"
+          :options="devices"
+          class="ui-block ui-block-t"
+          :empty-message="l().emptyList"
+          style="flex-grow: 1"
+        >
+          <template #header>
+            <div class="listbox-header">
+              {{ l().devices }}
+            </div>
+          </template>
+          <template #option="slotProps">
+            <div
+              style="text-align: left"
+              @click="history.push(slotProps.option.path)"
+            >
+              <i class="pi fi fi-disk"></i>
+              {{ slotProps.option.path }}
+            </div>
+          </template>
+        </p-listbox>
+      </div>
+      <div
+        id="file-manager"
+        class="ui-block ui-block-t"
+      >
+        <p-listbox
+          ref="fileManager"
+          v-model="selectedFiles"
+          :options="files"
+          :empty-message="l().emptyList"
+          multiple
+          meta-key-selection
+          style="height: 100%; overflow: auto;"
+          @contextmenu="filesRightClick"
+        >
+          <template #option="slotProps">
+            <div
+              style="text-align: left"
+              class="flex-row"
+              @dblclick="slotProps.option.type === 'dir' && history.push(slotProps.option.path)"
+            >
+              <div style="width: 70%">
+                <i :class="getFileIconClasses(slotProps.option.type)"></i>
+                {{ slotProps.option.name }}
+              </div>
+              <div style="width: 15%">
+                <template v-if="slotProps.option.type === 'file'">{{ formatFileSize(slotProps.option.size) }}</template>
+              </div>
+              <div style="width: 15%">{{ formatDate(slotProps.option.dateModified) }}</div>
+            </div>
+          </template>
+        </p-listbox>
+        <div id="file-manager-action-buttons">
+          <p-btn
+            icon="pi pi-folder"
+            :title="l().fileManager.new.newFolder"
+            @click="newFolder()"
+          />
+          <p-btn
+            icon="pi pi-file"
+            :title="l().fileManager.new.newFile"
+            @click="newFile()"
+          />
+        </div>
+      </div>
+      <p-context-menu
+        ref="filesCtxMenu"
+        :model="fileCtx"
+      />
+      <InputDialog
+        ref="filesRenameDialog"
+        :query="l().newFileName"
+        :title="l().fileManager.dialog.renameFilesTitle(selectedFiles?.length || 0)"
+        :initial-value="lastSelectedFile?.name || ''"
+        :help-text="l().newFileNameHelp"
+        @submit="doRenameFiles"
+      />
+      <InputDialog
+        ref="newFileDialog"
+        :title="l().fileManager.new.newFile"
+        :query="l().fileManager.new.dialog.newFileQuery"
+        @submit="doNewFile"
+      />
+      <InputDialog
+        ref="newFolderDialog"
+        :title="l().fileManager.new.newFolder"
+        :query="l().fileManager.new.dialog.newFolderQuery"
+        @submit="doNewFolder"
+      />
 
-			<InputDialog ref="copyFilesDialog" :title="l().fileManager.dialog.copyFilesTitle" :initial-value="path"
-				:query="l().fileManager.dialog.copyFilesQuery" @submit="doCopyFiles" />
-			<InputDialog ref="moveFilesDialog" :title="l().fileManager.dialog.moveFilesTitle" :initial-value="path"
-				:query="l().fileManager.dialog.moveFilesQuery" @submit="doMoveFiles" />
-		</div>
-	</div>
+      <InputDialog
+        ref="copyFilesDialog"
+        :title="l().fileManager.dialog.copyFilesTitle"
+        :initial-value="path"
+        :query="l().fileManager.dialog.copyFilesQuery"
+        @submit="doCopyFiles"
+      />
+      <InputDialog
+        ref="moveFilesDialog"
+        :title="l().fileManager.dialog.moveFilesTitle"
+        :initial-value="path"
+        :query="l().fileManager.dialog.moveFilesQuery"
+        @submit="doMoveFiles"
+      />
+    </div>
+  </div>
 </template>
 
 <style>

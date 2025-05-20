@@ -6,6 +6,7 @@ import { ActionMessage } from './protocol/Message';
 import { type BackendAPI, type ExposedFrontend } from '$types/IPCTypes';
 import { SpecialKeys, Action } from './common-types';
 import * as _ from 'lodash';
+import type { IUser } from '$types/Common';
 
 let window = undefined as undefined | Electron.BrowserWindow;
 export const setWindow = (w: Electron.BrowserWindow) => window = w;
@@ -21,6 +22,14 @@ const Log = (text: string, { sender = '', isMe = false, toSTDIO = true } = {}): 
 	if (toSTDIO)
 		console.log(`[${time}${isMe ? '' : ' ' + sender}] ${text.split('\n').join('\n\t')}`);
 	ipcEmit('logCommand', { time, text, isMe, sender });
+};
+
+/** @brief Load from DB */
+commands.clients.splice(0, commands.clients.length, ...Client.loadAll());
+
+const onModifyUser = (client: Client, update: Partial<IUser>) => {
+	client.save();
+	return ipcEmit('modifyUser', client.public.id, update);
 };
 
 const server = net.createServer(socket => {
@@ -56,7 +65,7 @@ const server = net.createServer(socket => {
 					client.public.diffTimeMs = Date.now() - handshake.timestampMs;
 					client.public.username = handshake.username;
 
-					ipcEmit('modifyUser', client.public.id, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username']));
+					onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username']));
 					client.sendMessage(JSON.stringify({}));
 				}
 				catch (e) {
@@ -104,7 +113,7 @@ const server = net.createServer(socket => {
 						client.sendMessage(client.inputQueue.flush());
 				}
 				client.public.processing = true;
-				ipcEmit('modifyUser', client.public.id, { processing: client.public.processing });
+				onModifyUser(client, { processing: client.public.processing });
 				return;
 			}
 			case Action.FEEDBACK:
@@ -122,7 +131,7 @@ const server = net.createServer(socket => {
 				else
 					Log(data.toString('utf-8'), { sender: `${client.public.name || client.public.hostname}#${client.public.id}` });
 				client.public.processing = false;
-				ipcEmit('modifyUser', client.public.id, { processing: client.public.processing });
+				onModifyUser(client, { processing: client.public.processing });
 				return;
 			case Action.SCREENCAST: {
 				if (!client.public.streaming) {
@@ -139,7 +148,7 @@ const server = net.createServer(socket => {
 	const setClientOffline = (e: Error | null) => {
 		Log(String(e?.stack));
 		client.public.online = false;
-		ipcEmit('modifyUser', client.public.id, { online: client.public.online });
+		onModifyUser(client, { online: client.public.online });
 	};
 	socket.on('error', setClientOffline);
 	socket.on('close', setClientOffline);
@@ -169,17 +178,22 @@ export function setupIPC() {
 		commands.Exec(line, Log);
 	});
 	ipcHandle('getUsers', async () => commands.clients.map(v => v.public));
-	ipcHandle('updateUser', async (_, id, user) => {
-		if (!commands.clients[id])
+	ipcHandle('updateUser', async (__, id, user) => {
+		const client = commands.clients[id];
+		if (!client)
 			return;
 		const netQ: string[] = [];
+		const clientPublic = client.public;
+		const oldPublic = _.cloneDeep(clientPublic);
 		for (const [k, v] of Object.entries(user)) {
-			const _v = commands.clients[id].public[k];
+			const _v = clientPublic[k];
 			// console.log('update!', id, k, v, _v);
 			if (k === 'streaming' && _v != v)
 				netQ.push(`SetIsStreaming(${v})`);
-			commands.clients[id].public[k] = v;
+			clientPublic[k] = v;
 		}
+		if (!_.isEqual(oldPublic, clientPublic))
+			client.save();
 		if (netQ.length)
 			commands.RunAnonymous({}, [id], (clients, _netQ) => clients.forEach(c => _netQ(c).splice(_netQ(c).length, 0, ...netQ)));
 	});
