@@ -20,7 +20,6 @@ exposeTyped<BackendAPI>('backend', {
 	getUsers: (...args) => ipcRenderer.invoke('getUsers', ...args),
 	getLogs: (...args) => ipcRenderer.invoke('getLogs', ...args),
 	updateUser: (...args) => ipcRenderer.invoke('updateUser', ...args),
-	onLoad: (...args) => ipcRenderer.invoke('onLoad', ...args),
 	openFilePicker: (...args) => ipcRenderer.invoke('openFilePicker', ...args),
 	clearDb: (...args) => ipcRenderer.invoke('clearDb', ...args),
 	sendMouseButton: (...args) => ipcRenderer.invoke('sendMouseButton', ...args),

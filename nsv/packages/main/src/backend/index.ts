@@ -212,11 +212,6 @@ export function setupIPC() {
 		if (netQ.length)
 			commands.RunAnonymous({}, [id], (clients, _netQ) => clients.forEach(c => _netQ(c).splice(_netQ(c).length, 0, ...netQ)));
 	});
-	ipcHandle('onLoad', async () => {
-		for (const u of commands.clients)
-			ipcEmit('setUser', u.public.id, u.public);
-		console.log('Users synced');
-	});
 	ipcHandle('openFilePicker', async (_, multiple = false, directory = false) => {
 		const properties: Parameters<typeof dialog.showOpenDialog>[0]['properties'] = [directory ? 'openDirectory' : 'openFile'];
 		if (multiple) {

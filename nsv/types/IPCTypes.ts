@@ -8,7 +8,6 @@ export interface BackendAPI {
 	getUsers: () => Promise<IUser[]>;
 	getLogs: () => Promise<ICmdLog[]>;
 	updateUser: (id: number, user: Partial<IUser>) => Promise<any>;
-	onLoad: () => Promise<any>;
 	openFilePicker: <T extends boolean = false>(multiple?: T, directory?: boolean) => Promise<(T extends true ? string[] : string) | null>;
 	clearDb: () => Promise<any>;
 

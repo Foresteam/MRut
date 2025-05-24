@@ -34,7 +34,6 @@ onMounted(() => {
 	window.expose.modifyUser(store._modifyUser);
 	window.expose.setUser(store._modifyUser);
 	window.expose.screencast(store.acceptScreenshot);
-	window.backend.onLoad();
 	fetchUsers();
 	fetchLogs();
 });
