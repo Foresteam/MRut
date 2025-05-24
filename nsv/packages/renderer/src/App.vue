@@ -17,7 +17,7 @@ import { usePreferencesStore } from './store/preferences';
 const router = useRouter();
 const { l } = usePreferencesStore();
 const store = useGeneralStore();
-const { fetchUsers } = store;
+const { fetchUsers, fetchLogs } = store;
 
 type RouteName = Routes[number]['name'];
 const routeLocalizedNames: Record<RouteName, () => string> = {
@@ -36,6 +36,7 @@ onMounted(() => {
 	window.expose.screencast(store.acceptScreenshot);
 	window.backend.onLoad();
 	fetchUsers();
+	fetchLogs();
 });
 </script>
 

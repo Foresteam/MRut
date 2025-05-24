@@ -62,8 +62,8 @@ export class Logger {
           const lines = content.split('\n').filter(line => line.trim());
           for (const line of lines) {
             try {
-              const log = JSON.parse(line);
-              logs.push(log);
+              const log = JSON.parse(line) as Omit<Log, 'time'> & { time: string };
+              logs.push({ ...log, time: new Date(log.time) });
             } catch (err) {
               console.warn(`Invalid JSON in ${filename}: ${line}`);
             }

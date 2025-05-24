@@ -6,6 +6,7 @@ export type { SpecialKeys } from '../packages/main/src/backend/common-types';
 export interface BackendAPI {
 	exec: <T extends boolean = false>(line: string, targets?: number[], expectFeedback?: T) => Promise<T extends true ? Record<string, string[]> : void>;
 	getUsers: () => Promise<IUser[]>;
+	getLogs: () => Promise<ICmdLog[]>;
 	updateUser: (id: number, user: Partial<IUser>) => Promise<any>;
 	onLoad: () => Promise<any>;
 	openFilePicker: <T extends boolean = false>(multiple?: T, directory?: boolean) => Promise<(T extends true ? string[] : string) | null>;

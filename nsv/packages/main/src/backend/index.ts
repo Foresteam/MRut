@@ -192,6 +192,7 @@ export function setupIPC() {
 		commands.Exec(line, logger);
 	});
 	ipcHandle('getUsers', async () => commands.clients.map(v => v.public));
+	ipcHandle('getLogs', async () => logger.logs);
 	ipcHandle('updateUser', async (__, id, user) => {
 		const client = commands.clients[id];
 		if (!client)

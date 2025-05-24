@@ -38,6 +38,11 @@ export const useGeneralStore = defineStore('general', {
 			for (const v of await window.backend.getUsers())
 				this.updateUser(v.id, v);
 		},
+		async fetchLogs() {
+			const logs = await window.backend.getLogs();
+			console.log(logs);
+			this.cmdLogs = logs;
+		},
 		async updateUser(id: number, data: Partial<IUser>) {
 			this._modifyUser(id, data);
 			window.backend.updateUser(id, data);
