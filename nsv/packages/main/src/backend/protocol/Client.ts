@@ -6,11 +6,15 @@ import InputQueue from './InputQueue';
 import _ from 'lodash';
 import * as db from '../Db';
 
+export interface ClientContainer {
+  public: IUser;
+}
+
 let idCounter = 0;
-type OnMessageHook<T extends Message = Message> = (message: T) => Promise<void> | void;
-type CommandQueueEntry = string | Buffer | (() => unknown | Promise<unknown>);
-type AnyClass = new (...args: any[]) => any;
-export class Client implements db.Serializable<IUser> {
+export type OnMessageHook<T extends Message = Message> = (message: T) => Promise<void> | void;
+export type CommandQueueEntry = string | Buffer | (() => unknown | Promise<unknown>);
+export type AnyClass = new (...args: any[]) => any;
+export class Client implements db.Serializable<IUser>, ClientContainer {
   readonly inputQueue: InputQueue;
   netQueue: { queuedCommandId: number, command: keyof Commands | undefined, queue: (CommandQueueEntry | CommandQueueEntry[])[] }[];
   public: IUser;
@@ -57,15 +61,15 @@ export class Client implements db.Serializable<IUser> {
       throw new Error(`Socket was never loaded: ${JSON.stringify(this.public)}`);
     this.#socket.end();
   }
-  sendMessage(data: string | Buffer): void {
+  async sendMessage(data: string | Buffer): Promise<void> {
     if (!this.#socket)
       throw new Error(`Socket was never loaded: ${JSON.stringify(this.public)}`);
     const buf = data ? Uint8Array.from(data instanceof Buffer ? data : Buffer.from(data, 'utf-8')) : new Uint8Array([0]);
     // mb Buffer.byteLength()?
     const sizeBuf = Buffer.alloc(8);
     sizeBuf.writeBigUInt64LE(BigInt(buf.length));
-    this.#socket.write(new Uint8Array(sizeBuf));
-    this.#socket.write(buf);
+    await new Promise<void>((resolve, reject) => this.#socket!.write(new Uint8Array(sizeBuf), err => !err ? resolve() : reject(err)));
+    await new Promise<void>((resolve, reject) => this.#socket!.write(buf, err => !err ? resolve() : reject(err)));
   }
   on<T extends AnyClass, U extends Message>(_event: 'message', type: T, hook: OnMessageHook<U>) {
     this.#onMessage.push([type, hook as OnMessageHook]);

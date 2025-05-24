@@ -2,7 +2,16 @@ import { z } from 'zod';
 
 export type { Commands } from '../packages/main/src/backend/common-types';
 
-export interface IUser {
+export interface IUserMetadata {
+	hwid: string;
+	username: string;
+	hostname: string;
+	startTimeMs: number;
+}
+export interface IUserHandshake extends Omit<IUserMetadata, 'startTimeMs'> {
+	timestampMs: number;
+}
+export interface IUser extends Partial<IUserMetadata> {
 	[index: string]: any;
 	id: number;
 	name?: string;
@@ -12,10 +21,6 @@ export interface IUser {
 	processing: boolean;
 	diffTimeMs?: number;
 	streaming: boolean;
-
-	username?: string;
-	hostname?: string;
-	startTimeMs?: number;
 }
 export type { Log as ICmdLog } from '../packages/main/src/backend/Logger';
 

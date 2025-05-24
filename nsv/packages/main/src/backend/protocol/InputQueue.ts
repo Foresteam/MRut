@@ -1,10 +1,10 @@
-import type { Client } from './Client';
+import type { ClientContainer } from './Client';
 
 export default class InputQueue {
   #queue: { command: string; relativeDelay: number }[];
-  #client: Client;
+  #client: ClientContainer;
   #lastRelativeDelay: number;
-  constructor(client: Client) {
+  constructor(client: ClientContainer) {
     this.#queue = [];
     this.#client = client;
     this.#lastRelativeDelay = 0;

@@ -6,10 +6,11 @@ import { ActionMessage } from './protocol/Message';
 import { type BackendAPI, type ExposedFrontend } from '$types/IPCTypes';
 import { SpecialKeys, Action } from './common-types';
 import * as _ from 'lodash';
-import type { IUser } from '$types/Common';
+import type { IUser, IUserHandshake } from '$types/Common';
 import * as db from './Db';
 import type { Log } from './Logger';
 import { Logger } from './Logger';
+import { ClientOneShot } from './protocol/ClientOneShot';
 
 let window = undefined as undefined | Electron.BrowserWindow;
 export const setWindow = (w: Electron.BrowserWindow) => window = w;
@@ -31,20 +32,25 @@ const logger = new Logger((params: Log) => ipcEmit('logCommand', params));
 
 const server = net.createServer(socket => {
 	socket.setNoDelay(true);
-	const foundClient = commands.clients.findIndex(v => v.public.address == socket.remoteAddress?.replaceAll('::ffff:', ''));
 	let client: Client;
-	if (foundClient >= 0) {
-		client = commands.clients[foundClient];
-		client.onReconnect(socket);
-	}
-	else {
-		client = new Client(socket);
-		commands.clients.push(client);
-	}
-	ipcEmit('setUser', client.public.id, client.public);
-	// socket.setEncoding('utf-8');
-	// client.on('message', FileMessage, () => client.sendMessage(''));
-	client.on('message', ActionMessage, (message: ActionMessage) => {
+
+	const performHandshake = async (handshake: IUserHandshake) => {
+		try {
+			client.public.hostname = handshake.hostname;
+			client.public.startTimeMs = handshake.timestampMs;
+			client.public.diffTimeMs = Date.now() - handshake.timestampMs;
+			client.public.username = handshake.username;
+			client.public.hwid = handshake.hwid;
+
+			onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username']));
+			await client.sendMessage(JSON.stringify({}));
+		}
+		catch (e) {
+			console.error('Handshake failed');
+			throw e;
+		}
+	};
+	const bindActualClient = () => client.on('message', ActionMessage, async (message: ActionMessage) => {
 		const [code, data] = [message.action, message.data];
 		let netQ: Client['netQueue'][number] | undefined;
 		let commandInQ: ReturnType<typeof commands.runningCommands.get>;
@@ -55,21 +61,8 @@ const server = net.createServer(socket => {
 		updateNetQ();
 		switch (code) {
 			case Action.HANDSHAKE: {
-				try {
-					const handshake: { hostname: string; timestampMs: number; username: string } = JSON.parse(data.toString('utf-8'));
-					client.public.hostname = handshake.hostname;
-					client.public.startTimeMs = handshake.timestampMs;
-					client.public.diffTimeMs = Date.now() - handshake.timestampMs;
-					client.public.username = handshake.username;
-
-					onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username']));
-					client.sendMessage(JSON.stringify({}));
-				}
-				catch (e) {
-					console.error('Handshake failed');
-					throw e;
-				}
-				return;
+				const handshake: IUserHandshake = JSON.parse(data.toString('utf-8'));
+				return await performHandshake(handshake);
 			}
 			case Action.IDLE: {
 				if (!netQ) {
@@ -139,6 +132,30 @@ const server = net.createServer(socket => {
 				return;// client.sendMessage('');
 			}
 		}
+	});
+
+	const oneShot = new ClientOneShot(socket);
+	oneShot.on('message', ActionMessage, async (message: ActionMessage) => {
+		const [code, data] = [message.action, message.data];
+
+		if (code !== Action.HANDSHAKE)
+			throw new Error('Action before handshake: aborted');
+		oneShot.dispose();
+
+		const handshake: IUserHandshake = JSON.parse(data.toString('utf-8'));
+		const existingClient = commands.clients.find(v => v.public.hwid == handshake.hwid);
+		if (existingClient) {
+			client = existingClient;
+			client.onReconnect(socket);
+		}
+		else {
+			client = new Client(socket);
+			commands.clients.push(client);
+		}
+		ipcEmit('setUser', client.public.id, client.public);
+
+		bindActualClient();
+		await performHandshake(handshake);
 	});
 	// socket.Send('print(\'Blambda\')');
 

@@ -1,9 +1,9 @@
 import { Action } from '../common-types';
 
-export class Message {
+export class Message<Act extends Action = Action> {
   readonly data?: Buffer;
-  readonly action?: Action;
-  constructor(data?: Buffer, action?: Action) {
+  readonly action?: Act;
+  constructor(data?: Buffer, action?: Act) {
     this.data = data;
     this.action = action;
   }
@@ -18,10 +18,10 @@ export class FileMessage extends Message {
     this.path = path;
   }
 }
-export class ActionMessage extends Message {
+export class ActionMessage<Act extends Exclude<Action, Action.FILE> = Exclude<Action, Action.FILE>> extends Message<Act> {
   declare readonly data: Buffer;
-  declare readonly action: Exclude<Action, Action.FILE>;
-  constructor(data: Buffer, action: Exclude<Action, Action.FILE>) {
+  declare readonly action: Act;
+  constructor(data: Buffer, action: Act) {
     super(data, action);
   }
 }
