@@ -1,3 +1,4 @@
+#include "../Hwid.h"
 #include "../helpers/GeneralHelpers.h"
 #include "LuaFunctions.h"
 #include <array>
@@ -56,6 +57,10 @@ void LuaFunctions::Lua::System::Sleep(const int64_t& ms) {
 long long LuaFunctions::Lua::System::GetTimeMs() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
+string LuaFunctions::Lua::System::GetHwid() {
+  return Hwid::GetHwid();
 }
 
 #ifdef _WIN32

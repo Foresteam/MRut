@@ -71,6 +71,7 @@ add_executable(rut
     src/Installer.h
     src/helpers/GeneralHelpers.h
     src/helpers/InstallerHelpers.h
+    src/Hwid.h
     src/luaFunctions/LuaFunctions.h
     src/Screenshot.h
     ${PLATFORM_EMBEDDED_LIBS}
@@ -79,6 +80,7 @@ add_executable(rut
     src/Installer.cpp
     src/helpers/GeneralHelpers.cpp
     src/helpers/InstallerHelpers.cpp
+    src/Hwid.cpp
     src/luaFunctions/LuaFunctionsSystem.cpp
     src/luaFunctions/LuaFunctionsNet.cpp
     src/luaFunctions/LuaFunctionsFs.cpp
@@ -149,6 +151,7 @@ if(WIN32)
         comsupp
         crypt32
         comctl32
+        wbemuuid
     )
 endif()
 

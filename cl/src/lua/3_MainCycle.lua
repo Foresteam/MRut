@@ -8,7 +8,8 @@ net.Send(
 	JSON.encode({
 		hostname = GetHostname(),
 		timestampMs = START_TIME,
-		username = GetUsername()
+		username = GetUsername(),
+		hwid = GetHwid()
 		-- tls...
 	})
 )

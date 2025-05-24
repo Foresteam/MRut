@@ -47,6 +47,7 @@ namespace LuaFunctions {
       string Exec(const string& cmd);
       void AExec(const string& cmd);
       long long GetTimeMs();
+      string GetHwid();
 
       namespace Dialog {
         bool Confirm(const std::string& title = "", const std::string& text = "", MessageBoxType type = MESSAGEBOX_BLANK);
