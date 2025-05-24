@@ -97,8 +97,8 @@ export class Client implements db.Serializable<IUser> {
   }
 
   static loadAll() {
-    const clientsData = db.getAll('Client').map(v => v[1]);
-    const clients = _.sortBy(clientsData.map(data => Client.deserialize(data as IUser)), client => client.public.id);
+    const clientsData = db.getAll<IUser>('Client').map(v => v[1]);
+    const clients = _.sortBy(clientsData.map(data => Client.deserialize(data)), client => client.public.id);
     const maxIndex = clients.at(-1)?.public.id;
     if (maxIndex !== undefined)
       Client.setIdCounter(maxIndex + 1);

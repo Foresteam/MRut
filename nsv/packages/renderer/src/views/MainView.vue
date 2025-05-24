@@ -4,10 +4,14 @@ import PBtn from 'primevue/button';
 import PInputText from 'primevue/inputtext';
 import PPanel from 'primevue/panel';
 import User from '@/components/UserCard.vue';
-import { nextTick, onActivated, onMounted, ref, watch } from 'vue';
+import { ComponentPublicInstance, onActivated, ref, watch } from 'vue';
 import { useGeneralStore } from '@/store/general';
 import { storeToRefs } from 'pinia';
 import { usePreferencesStore } from '@/store/preferences';
+import PContextMenu from 'primevue/contextmenu';
+import type { MenuItem } from 'primevue/menuitem';
+import { IUser } from '$types/Common';
+import InputDialog from '@/components/InputDialog.vue';
 
 const store = useGeneralStore();
 const { cmdLogs } = storeToRefs(store);
@@ -36,6 +40,19 @@ onActivated(() => {
 	panel.scroll({ top: panel.scrollHeight });
 });
 
+const renameUser = async (user: IUser, name: string) => store.updateUser(user.id, { name: name || undefined });
+const userRenameDialog = ref<ComponentPublicInstance<InstanceType<typeof InputDialog>>>();
+
+const userCtxMenu = ref<ComponentPublicInstance<InstanceType<typeof PContextMenu>>>();
+const selectedUser = ref<IUser>();
+const onUserRightClick = ($event: MouseEvent, user: IUser) => {
+	selectedUser.value = user;
+	userCtxMenu.value?.show($event);
+};
+const userCtx: MenuItem[] = [
+	{ label: () => l().mainView.userContext.rename.label, icon: 'pi pi-pencil', command: () => userRenameDialog.value?.show() },
+];
+
 defineExpose({ cmdLogsPanel });
 </script>
 
@@ -52,17 +69,22 @@ defineExpose({ cmdLogsPanel });
         {{ l().users }}
       </template>
       <div
-        v-for="v of store.users"
-        :key="v.id"
+        v-for="user of store.users"
+        :key="user.id"
         :class="{
           'flex-col': true,
           'user-button': true,
-          'user-button-selected': v.connected
+          'user-button-selected': user.connected
         }"
-        @click="updateUser(v.id, { connected: !v.connected, streaming: false })"
+        @click="updateUser(user.id, { connected: !user.connected, streaming: false })"
+        @contextmenu="onUserRightClick($event, user)"
       >
-        <User :user="v" />
+        <User :user="user" />
       </div>
+      <p-context-menu
+        ref="userCtxMenu"
+        :model="userCtx"
+      />
     </p-panel>
     <div
       class="ui-block flex-col"
@@ -78,18 +100,20 @@ defineExpose({ cmdLogsPanel });
         <div ref="cmdLogsPanel">
           <div
             v-for="log in cmdLogs"
-            :key="`log#${log.id}`"
+            :key="`log#${log.uuid}`"
             :class="{
               'flex-col': true,
               'cmd-log': true,
               'cmd-log-me': log.isMe
             }"
           >
-            [{{ log.time }}{{ log.isMe ? '' : ' ' + log.sender }}]
+            [{{ log.time.toTimeString().substring(0, log.time.toTimeString().indexOf(' GMT')) }}{{ log.isMe ? '' :
+              log.senderId !== null ? `${store.users[log.senderId].name ||
+                store.users[log.senderId].hostname}#${log.senderId}` : '' }}]
             <template v-if="log.text.includes('\\n')">
               <div
                 v-for="(line, i) in log.text.split('\\n')"
-                :key="`log#${log.id}#${i}`"
+                :key="`log#${log.uuid}#${i}`"
                 class="flex-col cmd-log-line"
               >
                 {{ line }}
@@ -115,9 +139,13 @@ defineExpose({ cmdLogsPanel });
           @click="sendCommand(command)"
         />
       </div>
-      <!-- <div class="flex-row misc-buttons">
-				<MiscButtons />
-			</div> -->
+      <InputDialog
+        ref="userRenameDialog"
+        :query="l().mainView.userContext.rename.prompt.text"
+        :title="l().mainView.userContext.rename.prompt.title(selectedUser || {} as IUser)"
+        :initial-value="selectedUser?.name"
+        @submit="selectedUser && renameUser(selectedUser, $event)"
+      />
     </div>
   </div>
 </template>

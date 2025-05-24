@@ -240,6 +240,10 @@ html {
 	gap: 8px;
 }
 
+.gap-l {
+	gap: 16px;
+}
+
 .p-tabmenuitem {
 	font-size: 27pt;
 }

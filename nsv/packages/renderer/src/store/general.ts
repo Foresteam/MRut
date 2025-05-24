@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import type { IUser, ICmdLog } from '$types/Common';
+import { v4 } from 'uuid';
 
 export const useGeneralStore = defineStore('general', {
 	state: () => ({
@@ -42,7 +43,7 @@ export const useGeneralStore = defineStore('general', {
 			window.backend.updateUser(id, data);
 		},
 		logCommand(log: ICmdLog) {
-			this.cmdLogs.push({ id: this.cmdLogs.length, ...log });
+			this.cmdLogs.push(log);
 		},
 		acceptScreenshot(img: string) {
 			this.lastFrame = img;

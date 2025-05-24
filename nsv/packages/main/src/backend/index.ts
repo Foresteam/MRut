@@ -7,6 +7,9 @@ import { type BackendAPI, type ExposedFrontend } from '$types/IPCTypes';
 import { SpecialKeys, Action } from './common-types';
 import * as _ from 'lodash';
 import type { IUser } from '$types/Common';
+import * as db from './Db';
+import type { Log } from './Logger';
+import { Logger } from './Logger';
 
 let window = undefined as undefined | Electron.BrowserWindow;
 export const setWindow = (w: Electron.BrowserWindow) => window = w;
@@ -16,14 +19,6 @@ const ipcHandle = <T extends keyof BackendAPI>(name: T, f: (e: Electron.IpcMainI
 const ipcEmit = <T extends keyof ExposedFrontend>(name: T, ...args: Parameters<Parameters<ExposedFrontend[T]>[0]>) =>
 	window?.webContents.send(name, ...args);
 
-const Log = (text: string, { sender = '', isMe = false, toSTDIO = true } = {}): void => {
-	let time = new Date().toTimeString();
-	time = time.substring(0, time.indexOf(' GMT'));
-	if (toSTDIO)
-		console.log(`[${time}${isMe ? '' : ' ' + sender}] ${text.split('\n').join('\n\t')}`);
-	ipcEmit('logCommand', { time, text, isMe, sender });
-};
-
 /** @brief Load from DB */
 commands.clients.splice(0, commands.clients.length, ...Client.loadAll());
 
@@ -31,6 +26,8 @@ const onModifyUser = (client: Client, update: Partial<IUser>) => {
 	client.save();
 	return ipcEmit('modifyUser', client.public.id, update);
 };
+
+const logger = new Logger((params: Log) => ipcEmit('logCommand', params));
 
 const server = net.createServer(socket => {
 	socket.setNoDelay(true);
@@ -129,7 +126,7 @@ const server = net.createServer(socket => {
 					}
 				}
 				else
-					Log(data.toString('utf-8'), { sender: `${client.public.name || client.public.hostname}#${client.public.id}` });
+					logger.log(data.toString('utf-8'), { sender: client });
 				client.public.processing = false;
 				onModifyUser(client, { processing: client.public.processing });
 				return;
@@ -146,7 +143,7 @@ const server = net.createServer(socket => {
 	// socket.Send('print(\'Blambda\')');
 
 	const setClientOffline = (e: Error | null) => {
-		Log(String(e?.stack));
+		logger.log(String(e?.stack));
 		client.public.online = false;
 		onModifyUser(client, { online: client.public.online });
 	};
@@ -173,9 +170,9 @@ export function setupIPC() {
 		console.log('call', line, targets, expectFeedback);
 		if (expectFeedback) {
 			console.log('expect!', targets, line);
-			return await new Promise(resolve => commands.Exec(line, Log, targets, { accumulateResults: true, resolve }));
+			return await new Promise(resolve => commands.Exec(line, logger, targets, { accumulateResults: true, resolve }));
 		}
-		commands.Exec(line, Log);
+		commands.Exec(line, logger);
 	});
 	ipcHandle('getUsers', async () => commands.clients.map(v => v.public));
 	ipcHandle('updateUser', async (__, id, user) => {
@@ -217,6 +214,10 @@ export function setupIPC() {
 		if (result.canceled || !result.filePaths.length)
 			return null;
 		return multiple ? result.filePaths : result.filePaths[0];
+	});
+	ipcHandle('clearDb', async () => {
+		db.clear();
+		console.log('DB cleared');
 	});
 
 	ipcHandle('sendMouseButton', async (_, { button, state, applyToAll }) => {

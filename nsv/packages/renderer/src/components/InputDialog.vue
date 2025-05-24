@@ -1,3 +1,39 @@
+<script lang="ts" setup>
+import PInputText from 'primevue/inputtext';
+import PBtn from 'primevue/button';
+import PDialog from 'primevue/dialog';
+import { ref } from 'vue';
+import { usePreferencesStore } from '@/store/preferences';
+
+const emit = defineEmits<{ (e: 'submit', value: string): any }>();
+const props = withDefaults(defineProps<{
+  title?: string;
+  query: string;
+  initialValue?: string;
+  helpText?: string;
+}>(), {
+	title: 'Input',
+});
+
+const { l } = usePreferencesStore();
+
+const value = ref('');
+const shown = ref(false);
+
+const onSubmit = () => {
+	emit('submit', value.value);
+	hide();
+};
+const hide = () => shown.value = false;
+const show = () => {
+	shown.value = true;
+	value.value = props.initialValue || '';
+};
+
+defineExpose({ show, hide });
+</script>
+
+
 <template>
   <p-dialog
     v-model:visible="shown"
@@ -34,38 +70,3 @@
     </template>
   </p-dialog>
 </template>
-
-<script lang="ts" setup>
-import PInputText from 'primevue/inputtext';
-import PBtn from 'primevue/button';
-import PDialog from 'primevue/dialog';
-import { ref } from 'vue';
-import { usePreferencesStore } from '@/store/preferences';
-
-const emit = defineEmits<{ (e: 'submit', value: string): any }>();
-const props = withDefaults(defineProps<{
-  title?: string;
-  query: string;
-  initialValue?: string;
-  helpText?: string;
-}>(), {
-	title: 'Input',
-});
-
-const { l } = usePreferencesStore();
-
-const value = ref('');
-const shown = ref(false);
-
-const onSubmit = () => {
-	emit('submit', value.value);
-	hide();
-};
-const hide = () => shown.value = false;
-const show = () => {
-	shown.value = true;
-	value.value = props.initialValue || '';
-};
-
-defineExpose({ show, hide });
-</script>

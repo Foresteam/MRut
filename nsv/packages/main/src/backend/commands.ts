@@ -2,6 +2,7 @@ import { Command, ArgParser } from '@foresteam/cmd-argparse';
 import type { Client } from './protocol/Client';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
+import type { Logger } from './Logger';
 
 type CommandFunction = (clients: Client[], netQ: (client: Client) => Client['netQueue'][number]['queue']) => unknown;
 export type Commands = typeof commands;
@@ -168,8 +169,8 @@ const _RunCommand = ({ accumulateResults = false, resolve }: RunQueuedParams, cm
 	(cmd as Partial<QueuedCommand>).action?.(clients.filter(c => cmd.clientIds.includes(c.public.id)), client => netQueuesByClientId[client.public.id].queue);
 	return running;
 };
-export const Exec = (line: string, Log: CallableFunction, targets?: number[], params: RunQueuedParams = {}) => {
-	Log(line, { isMe: true, toSTDIO: false });
+export const Exec = (line: string, logger: Logger, targets?: number[], params: RunQueuedParams = {}) => {
+	logger.log(line, { isMe: true, toSTDIO: false });
 	const parsed = argParser.parse(line, Object.values(commands));
 	if (!parsed)
 		return null;

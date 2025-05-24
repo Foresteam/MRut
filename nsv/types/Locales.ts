@@ -1,3 +1,5 @@
+import type { IUser } from './Common';
+
 const en = {
   language: 'English',
   main: 'Main',
@@ -30,6 +32,17 @@ const en = {
     buttonCopy: 'Copy',
     buttonRename: 'Rename',
     buttonDelete: 'Delete',
+  },
+  mainView: {
+    userContext: {
+      rename: {
+        label: 'Rename',
+        prompt: {
+          text: 'Enter new name',
+          title: (user: IUser) => `User#${user.id} ${user.name || user.hostname} (${user.address})`,
+        },
+      },
+    },
   },
   fileManager: {
     topPanel: {
@@ -91,6 +104,10 @@ const en = {
   fileSizePositive: 'File size cannot be negative',
   newFileName: 'Enter new filename',
   newFileNameHelp: '\'#\' will be replaced with number, if multiple files are selected',
+  settingsTab: {
+    resetDb: 'Clear cache',
+    resetDbTooltip: 'Clears the DB (if something is glitchy or whatever)',
+  },
 };
 const ru = {
   language: 'Русский',
@@ -124,6 +141,17 @@ const ru = {
     buttonCopy: 'Скопировать',
     buttonRename: 'Переименовать',
     buttonDelete: 'Удалить',
+  },
+  mainView: {
+    userContext: {
+      rename: {
+        label: 'Переименовать',
+        prompt: {
+          text: 'Введите новое имя',
+          title: (user: IUser) => `Пользователь#${user.id} ${user.name || user.hostname} (${user.address})`,
+        },
+      },
+    },
   },
   fileManager: {
     topPanel: {
@@ -185,6 +213,10 @@ const ru = {
   fileSizePositive: 'Размер файла не может быть отрицательным',
   newFileName: 'Введите новое имя файла',
   newFileNameHelp: '\'#\' будет заменено числом, если выбрано несколько файлов',
+  settingsTab: {
+    resetDb: 'Очистить кеш',
+    resetDbTooltip: 'Очистить базу данных (например, если что-то глючит)',
+  },
 } satisfies typeof en;
 
 export const activeLanguage = (russian: boolean) => russian ? ru : en;

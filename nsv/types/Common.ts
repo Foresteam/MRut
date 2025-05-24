@@ -17,13 +17,7 @@ export interface IUser {
 	hostname?: string;
 	startTimeMs?: number;
 }
-export interface ICmdLog {
-	id?: number;
-	time: string;
-	text: string;
-	isMe: boolean;
-	sender: string;
-}
+export type { Log as ICmdLog } from '../packages/main/src/backend/Logger';
 
 const fileCommonSchema = z.object({
 	dateModified: z.number().transform(timeMs => new Date(timeMs)),
