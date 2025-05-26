@@ -28,7 +28,7 @@ const onModifyUser = (client: Client, update: Partial<IUser>) => {
 	return ipcEmit('modifyUser', client.public.id, update);
 };
 
-const logger = new Logger((params: Log) => ipcEmit('logCommand', params));
+const logger = new Logger((params: Log) => ipcEmit('logCommand', params), () => commands.clients);
 
 const server = net.createServer(socket => {
 	socket.setNoDelay(true);
@@ -44,6 +44,7 @@ const server = net.createServer(socket => {
 
 			onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username']));
 			await client.sendMessage(JSON.stringify({}));
+			logger.log({ type: 'system', text: 'Client connected', targets: [client] });
 		}
 		catch (e) {
 			console.error('Handshake failed');
@@ -119,7 +120,7 @@ const server = net.createServer(socket => {
 					}
 				}
 				else
-					logger.log(data.toString('utf-8'), { sender: client });
+					logger.log({ type: 'feedback', text: data.toString('utf-8'), sender: client });
 				client.public.processing = false;
 				onModifyUser(client, { processing: client.public.processing });
 				return;
@@ -160,13 +161,16 @@ const server = net.createServer(socket => {
 	// socket.Send('print(\'Blambda\')');
 
 	const setClientOffline = (e: Error | null) => {
-		logger.log(String(e?.stack));
+		if (e)
+			console.error(e);
 		client.public.online = false;
 		onModifyUser(client, { online: client.public.online });
+		logger.log({ type: 'system', text: 'Client lost connection', targets: [client] });
 	};
 	socket.on('error', setClientOffline);
 	socket.on('close', setClientOffline);
 });
+logger.log({ text: 'Server started', type: 'system' });
 
 const closeAll = () => {
 	commands.clients.forEach(v => v.close());

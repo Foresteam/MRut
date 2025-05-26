@@ -12,6 +12,7 @@ import PContextMenu from 'primevue/contextmenu';
 import type { MenuItem } from 'primevue/menuitem';
 import { IUser } from '$types/Common';
 import InputDialog from '@/components/InputDialog.vue';
+import { formatLog } from '../../../../shared/formatLogs';
 
 const store = useGeneralStore();
 const { cmdLogs } = storeToRefs(store);
@@ -104,12 +105,11 @@ defineExpose({ cmdLogsPanel });
             :class="{
               'flex-col': true,
               'cmd-log': true,
-              'cmd-log-me': log.isMe
+              'cmd-log-cmd': log.type === 'command',
+              'cmd-log-system': log.type === 'system',
             }"
           >
-            [{{ log.time.toTimeString().substring(0, log.time.toTimeString().indexOf(' GMT')) }}{{ log.isMe ? '' :
-              log.senderId !== null ? `${store.users[log.senderId].name ||
-                store.users[log.senderId].hostname}#${log.senderId}` : '' }}]
+            {{ formatLog(log, Object.values(store.users))[0] }}
             <template v-if="log.text.includes('\\n')">
               <div
                 v-for="(line, i) in log.text.split('\\n')"
@@ -122,6 +122,7 @@ defineExpose({ cmdLogsPanel });
             <template v-else>
               {{ log.text }}
             </template>
+            {{ formatLog(log, Object.values(store.users))[2] }}
           </div>
         </div>
       </p-panel>
@@ -208,7 +209,11 @@ defineExpose({ cmdLogsPanel });
   padding-left: 8px;
 }
 
-.cmd-log-me {
+.cmd-log-cmd {
   color: var(--primary-color);
+}
+
+.cmd-log-system {
+  color: var(--text-color-secondary);
 }
 </style>

@@ -4,9 +4,20 @@ import { v4 } from 'uuid';
 import { configFolder } from './Db';
 import fs from 'node:fs';
 import path from 'node:path';
+import { formatLog } from '../../../../shared/formatLogs';
 
-export type LogParams = { sender?: null | Client; isMe?: boolean; text: string };
-export type Log = { isMe?: boolean; text: string; time: Date; senderId: number | null; uuid: string };
+export type LogType = 'command' | 'feedback' | 'system';
+export type LogParams = { type: LogType; text: string } & (
+  { type: 'command'; targets: Client[] }
+  | { type: 'feedback'; sender: Client; }
+  | { type: 'system'; targets?: Client[] }
+);
+export type LogBase = { text: string; time: Date; uuid: string };
+export type Log = LogBase & (
+  { type: 'command'; targetIds: number[] }
+  | { type: 'feedback'; senderId: number; }
+  | { type: 'system'; targetIds?: number[] }
+);
 type ClientLogFunction = (params: Log) => unknown;
 
 function getDateFormatted(date = new Date()): string {
@@ -33,11 +44,13 @@ function getDateFormatted(date = new Date()): string {
 export class Logger {
   #logCommand: ClientLogFunction;
   #activeJournal?: { path: string; stream: fs.WriteStream };
+  #getClients: () => Client[];
   logs: Log[];
   folder: string;
-  constructor(clientLogFunction: ClientLogFunction, folder = path.join(configFolder, 'logs')) {
+  constructor(clientLogFunction: ClientLogFunction, getClients: () => Client[], folder = path.join(configFolder, 'logs')) {
     this.#logCommand = clientLogFunction;
     this.folder = folder;
+    this.#getClients = getClients;
     this.getCurrentJournal();
 
     fs.mkdirSync(folder, { recursive: true });
@@ -63,7 +76,7 @@ export class Logger {
           for (const line of lines) {
             try {
               const log = JSON.parse(line) as Omit<Log, 'time'> & { time: string };
-              logs.push({ ...log, time: new Date(log.time) });
+              logs.push({ ...log, time: new Date(log.time) } as Log);
             } catch (err) {
               console.warn(`Invalid JSON in ${filename}: ${line}`);
             }
@@ -88,13 +101,26 @@ export class Logger {
     return this.#activeJournal = { path: logPath, stream: fs.createWriteStream(logPath, { encoding: 'utf-8', flags: 'a' }) };
   }
 
-  log(text: string, { sender = null as null | Client, isMe = false, toSTDIO = true } = {}): void {
-    let time = new Date().toTimeString();
-    time = time.substring(0, time.indexOf(' GMT'));
-    if (toSTDIO)
-      console.log(`[${time}${isMe ? '' : ` ${sender?.public.name || sender?.public.hostname}#${sender?.public.id}`}] ${text.split('\n').join('\n\t')}`);
+  log(params: LogParams & { toSTDIO?: boolean }): void {
+    const toSTDIO = params.toSTDIO ?? true;
+    const { text } = params;
 
-    const log: Log = { time: new Date(), text, isMe, senderId: sender?.public.id ?? null, uuid: v4() };
+    const base: LogBase = { time: new Date(), text, uuid: v4() };
+    let log: Log;
+    switch (params.type) {
+      case 'feedback':
+        log = { ...base, type: params.type, senderId: params.sender?.public.id };
+        break;
+      case 'command':
+        log = { ...base, type: params.type, targetIds: params.targets.map(t => t.public.id) };
+        break;
+      case 'system':
+        log = { ...base, type: params.type, targetIds: params.targets?.map(t => t.public.id) };
+        break;
+    }
+    if (toSTDIO)
+      console.log(formatLog(log, this.#getClients().map(c => c.public)).join(' '));
+
     this.logs.push(log);
     this.#logCommand(log);
     this.getCurrentJournal().stream.write(`${JSON.stringify(log)}\n`);

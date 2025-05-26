@@ -170,11 +170,12 @@ const _RunCommand = ({ accumulateResults = false, resolve }: RunQueuedParams, cm
 	return running;
 };
 export const Exec = (line: string, logger: Logger, targets?: number[], params: RunQueuedParams = {}) => {
-	logger.log(line, { isMe: true, toSTDIO: false });
 	const parsed = argParser.parse(line, Object.values(commands));
 	if (!parsed)
 		return null;
-	const clientIds = getConnectedClients().map(client => client.public.id).filter(clientId => !targets || targets.includes(clientId));
+	const targetClients = getConnectedClients().filter(client => !targets || targets.includes(client.public.id));
+	const clientIds = targetClients.map(client => client.public.id);
+	logger.log({ type: 'command', text: line, toSTDIO: false, targets: targetClients });
 	const id = queueId++;
 	const name = Object.entries(commands).find(([_, command]) => command === parsed.cmd)?.[0] as keyof Commands;
 	return _RunCommand(params, { action: parsed.cmd.execute({ args: parsed.args, refwith: parsed.refwith }), clientIds, id, name });

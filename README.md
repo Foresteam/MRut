@@ -8,8 +8,8 @@
 * **Language**:
   * ~~Basics~~
   * Translate everything
-* User renaming
-* Store users (persistent)
+* ~~User renaming~~
+* ~~Store users (persistent)~~
 * **Take over controls:**
   * ~~**Mouse**~~
   * ~~**Keyboard**~~
@@ -34,7 +34,7 @@ yarn
 yarn watch
 ```
 
-Client (./cl). Need foresteamnd (build and copy).
+Client (./cl): ` (cd src/lua; yarn) `
 
 To run debug:
 ```sh
