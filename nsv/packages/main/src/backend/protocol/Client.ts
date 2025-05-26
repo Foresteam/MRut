@@ -57,9 +57,8 @@ export class Client implements db.Serializable<IUser>, ClientContainer {
     });
   }
   close() {
-    if (!this.#socket)
-      throw new Error(`Socket was never loaded: ${JSON.stringify(this.public)}`);
-    this.#socket.end();
+    if (this.#socket)
+      this.#socket.end();
   }
   async sendMessage(data: string | Buffer): Promise<void> {
     if (!this.#socket)

@@ -1,4 +1,3 @@
-import * as net from 'net';
 import { dialog, ipcMain } from 'electron';
 import * as commands from './commands';
 import { Client } from './protocol/Client';
@@ -10,7 +9,7 @@ import type { IUser, IUserHandshake } from '$types/Common';
 import * as db from './Db';
 import type { Log } from './Logger';
 import { Logger } from './Logger';
-import { ClientOneShot } from './protocol/ClientOneShot';
+import { SecureServer } from './protocol/SecureServer';
 
 let window = undefined as undefined | Electron.BrowserWindow;
 export const setWindow = (w: Electron.BrowserWindow) => window = w;
@@ -30,28 +29,10 @@ const onModifyUser = (client: Client, update: Partial<IUser>) => {
 
 const logger = new Logger((params: Log) => ipcEmit('logCommand', params), () => commands.clients);
 
-const server = net.createServer(socket => {
-	socket.setNoDelay(true);
-	let client: Client;
+const server = new SecureServer(logger, onModifyUser, client => {
+	ipcEmit('setUser', client.public.id, client.public);
 
-	const performHandshake = async (handshake: IUserHandshake) => {
-		try {
-			client.public.hostname = handshake.hostname;
-			client.public.startTimeMs = handshake.timestampMs;
-			client.public.diffTimeMs = Date.now() - handshake.timestampMs;
-			client.public.username = handshake.username;
-			client.public.hwid = handshake.hwid;
-
-			onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username']));
-			await client.sendMessage(JSON.stringify({}));
-			logger.log({ type: 'system', text: 'Client connected', targets: [client] });
-		}
-		catch (e) {
-			console.error('Handshake failed');
-			throw e;
-		}
-	};
-	const bindActualClient = () => client.on('message', ActionMessage, async (message: ActionMessage) => {
+	client.on('message', ActionMessage, async (message: ActionMessage) => {
 		const [code, data] = [message.action, message.data];
 		let netQ: Client['netQueue'][number] | undefined;
 		let commandInQ: ReturnType<typeof commands.runningCommands.get>;
@@ -63,7 +44,7 @@ const server = net.createServer(socket => {
 		switch (code) {
 			case Action.HANDSHAKE: {
 				const handshake: IUserHandshake = JSON.parse(data.toString('utf-8'));
-				return await performHandshake(handshake);
+				return await server.performHandshake(client, handshake);
 			}
 			case Action.IDLE: {
 				if (!netQ) {
@@ -134,43 +115,7 @@ const server = net.createServer(socket => {
 			}
 		}
 	});
-
-	const oneShot = new ClientOneShot(socket);
-	oneShot.on('message', ActionMessage, async (message: ActionMessage) => {
-		const [code, data] = [message.action, message.data];
-
-		if (code !== Action.HANDSHAKE)
-			throw new Error('Action before handshake: aborted');
-		oneShot.dispose();
-
-		const handshake: IUserHandshake = JSON.parse(data.toString('utf-8'));
-		const existingClient = commands.clients.find(v => v.public.hwid == handshake.hwid);
-		if (existingClient) {
-			client = existingClient;
-			client.onReconnect(socket);
-		}
-		else {
-			client = new Client(socket);
-			commands.clients.push(client);
-		}
-		ipcEmit('setUser', client.public.id, client.public);
-
-		bindActualClient();
-		await performHandshake(handshake);
-	});
-	// socket.Send('print(\'Blambda\')');
-
-	const setClientOffline = (e: Error | null) => {
-		if (e)
-			console.error(e);
-		client.public.online = false;
-		onModifyUser(client, { online: client.public.online });
-		logger.log({ type: 'system', text: 'Client lost connection', targets: [client] });
-	};
-	socket.on('error', setClientOffline);
-	socket.on('close', setClientOffline);
 });
-logger.log({ text: 'Server started', type: 'system' });
 
 const closeAll = () => {
 	commands.clients.forEach(v => v.close());
@@ -181,10 +126,6 @@ const closeAll = () => {
 process.on('SIGINT', closeAll);
 process.on('exit', closeAll);
 process.on('SIGUSR2', closeAll);
-
-function setupServer() {
-	server.listen(1337);
-}
 
 export function setupIPC() {
 	ipcHandle('exec', async (_, line, targets, expectFeedback = false) => {
@@ -268,5 +209,5 @@ export function setupIPC() {
 		targets.forEach(target => target.inputQueue.push(`input.Delay(${ms})`));
 	});
 
-	setupServer();
+	server.start();
 }
