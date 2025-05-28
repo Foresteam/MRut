@@ -26,6 +26,8 @@ using namespace std;
 #endif
 
 #ifdef _WIN32
+static constexpr size_t TLS_READ_CHUNK_SIZE = 16 * 1024; // 16 KiB per SSL_read()
+
 void WSInit() {
   WSADATA data;
   if (WSAStartup(MAKEWORD(1, 1), &data) != 0) {
@@ -195,6 +197,8 @@ void TCPClient::Retry(bool dInitial) {
       printf("Retrying...\n");
   }
   PLATFORM::OpenConnection(_socket, _address, ResolveIP(_host), _port);
+  if (_useTls)
+    InitializeTLS(_host);
 }
 void TCPClient::LostConnection() {
   PLATFORM::CloseConnection(_socket);
@@ -205,15 +209,42 @@ void TCPClient::LostConnection() {
 }
 char* TCPClient::ReceiveRawData(size_t* sz) {
   Retry(false);
+
+#ifdef _WIN32
+  if (_useTls) {
+    // read size prefix first (on TLS)
+    size_t msgLen;
+    int n = SSL_read(_ssl, &msgLen, sizeof msgLen);
+    if (n <= 0) {
+      LostConnection();
+      return nullptr;
+    }
+
+    auto out = new char[msgLen];
+    size_t offset = 0;
+    while (offset < msgLen) {
+      int chunk = (int)std::min(msgLen - offset, TLS_READ_CHUNK_SIZE);
+      int got = SSL_read(_ssl, out + offset, chunk);
+      if (got <= 0) {
+        delete[] out;
+        LostConnection();
+        return nullptr;
+      }
+      offset += got;
+    }
+    if (sz)
+      *sz = msgLen;
+    return out;
+  }
+#endif
+
+  // fallback to your existing size-prefix logic…
   size_t bufSz;
-  // receive the size first
-  if (PLATFORM::Recv(_socket, reinterpret_cast<char*>(&bufSz), sizeof(size_t), 0) == SOCKET_ERROR) {
+  if (PLATFORM::Recv(_socket, (char*)&bufSz, sizeof bufSz, 0) == SOCKET_ERROR) {
     LostConnection();
     return nullptr;
   }
   char* buf = new char[bufSz];
-  memset(buf, 0, bufSz);
-  // receive data of the actual size
   if (PLATFORM::Recv(_socket, buf, bufSz, 0) == SOCKET_ERROR) {
     delete[] buf;
     LostConnection();
@@ -233,15 +264,31 @@ std::string TCPClient::ReceiveData() {
   return rs;
 }
 bool TCPClient::SendDataRaw(const char* data, size_t size) {
-  Retry(false);
-  size_t offset = 0, sent;
-  while (offset < size)
-    if ((sent = PLATFORM::Send(_socket, const_cast<char*>(data + offset), size - offset, MSG_NOSIGNAL)) == (size_t)SOCKET_ERROR) {
+#ifdef _WIN32
+  if (_useTls) {
+    size_t offset = 0;
+    while (offset < size) {
+      int written = SSL_write(_ssl, data + offset, int(size - offset));
+      if (written <= 0) {
+        LostConnection();
+        return false;
+      }
+      offset += written;
+    }
+    return true;
+  }
+#endif
+
+  // fallback to plain‐TCP
+  size_t offset = 0;
+  while (offset < size) {
+    size_t sent = PLATFORM::Send(_socket, const_cast<char*>(data + offset), int(size - offset), MSG_NOSIGNAL);
+    if (sent == SOCKET_ERROR) {
       LostConnection();
       return false;
     }
-    else
-      offset += sent;
+    offset += sent;
+  }
   return true;
 }
 bool TCPClient::SendData(const char* data, size_t size) {
@@ -261,16 +308,27 @@ bool TCPClient::SendData(const std::vector<std::pair<const char*, size_t>>& data
 bool TCPClient::SendData(const std::string& data) { return SendData(data.c_str(), data.length()); }
 TCPClient::TCPClient(PLATFORM_SOCKET socket, PLATFORM_ADDRESS address) : _socket(socket), _address(address) {}
 TCPClient::TCPClient(const TCPClient& other) : TCPClient(other._host, other._port, other.retryPolicy, other.debug) {}
-TCPClient::TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, bool debug) {
+TCPClient::TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, bool useTls, bool debug) {
   this->retryPolicy = retryPolicy;
   this->debug = debug;
   _socket = INVALID_SOCKET;
   _host = host;
   _port = port;
+  _useTls = useTls;
   Retry(true);
 }
 
-TCPClient::~TCPClient() { PLATFORM::CloseConnection(_socket); }
+TCPClient::~TCPClient() {
+#ifdef _WIN32
+  if (_useTls) {
+    SSL_shutdown(_ssl);
+    SSL_free(_ssl);
+    SSL_CTX_free(_sslCtx);
+    EVP_cleanup();
+  }
+#endif
+  PLATFORM::CloseConnection(_socket);
+}
 
 std::string TCPClient::GetHost() const { return _host; }
 uint16_t TCPClient::GetPort() const { return _port; }
@@ -300,4 +358,49 @@ std::string TCPClient::ResolveIP(std::string host) {
   WSACleanup();
 #endif
   return result;
+}
+
+bool TCPClient::InitializeTLS(const std::string& host) {
+#ifdef _WIN32
+  if (_sslCtx)
+    return true; // already done
+
+  SSL_load_error_strings();
+  OpenSSL_add_ssl_algorithms();
+
+  // 1) Create a client‐only context that *only* allows TLS1.3
+  _sslCtx = SSL_CTX_new(TLS_client_method());
+  if (!_sslCtx) {
+    if (retryPolicy == THROW)
+      throw std::runtime_error("SSL_CTX_new failed");
+    else
+      return false;
+  }
+  SSL_CTX_set_min_proto_version(_sslCtx, TLS1_3_VERSION);
+  SSL_CTX_set_max_proto_version(_sslCtx, TLS1_3_VERSION);
+
+  // 2) Create an SSL object & bind it to our socket
+  _ssl = SSL_new(_sslCtx);
+  if (!_ssl) {
+    if (retryPolicy == THROW)
+      throw std::runtime_error("SSL_new failed");
+    else
+      return false;
+  }
+  SSL_set_fd(_ssl, static_cast<int>(_socket));
+
+  // 3) Enable SNI (so virtual hosts work)
+  SSL_set_tlsext_host_name(_ssl, host.c_str());
+
+  // 4) Perform the TLS handshake
+  if (SSL_connect(_ssl) != 1) {
+    char buf[256];
+    ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
+    if (retryPolicy == THROW)
+      throw std::runtime_error(std::string("SSL_connect failed: ") + buf);
+    else
+      return false;
+  }
+  return true;
+#endif
 }

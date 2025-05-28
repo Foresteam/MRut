@@ -107,7 +107,7 @@ int wmain(int argc, wchar_t* argv[]) {
 
   while (true) {
     try {
-      client = new TCPClient(appConfig.host, appConfig.port, TCPClient::RetryPolicy::THROW, DEBUG);
+      client = new TCPClient(appConfig.host, appConfig.port, TCPClient::RetryPolicy::THROW, true, DEBUG);
       controller = new Controller();
       bool exit = RunHandled(L, (char*)dMainCycle.data());
       if (exit)

@@ -52,7 +52,18 @@ if (UNIX AND NOT APPLE)
     add_compile_options(--std=g++17)
 elseif (WIN32)
     add_compile_options(-std=c++17)
-    set(PLATFORM_LIBS shlwapi ws2_32)
+
+    add_definitions(-DOPENSSL_USE_STATIC_LIBS)
+    find_library(LIBSSL libssl 
+        PATHS ${CMAKE_CURRENT_SOURCE_DIR}/openssl/x64/lib
+        NO_DEFAULT_PATH
+    )
+    find_library(LIBCRYPTO libcrypto 
+        PATHS ${CMAKE_CURRENT_SOURCE_DIR}/openssl/x64/lib
+        NO_DEFAULT_PATH
+    )
+
+    set(PLATFORM_LIBS shlwapi ws2_32 crypt32 user32 advapi32 ${LIBSSL} ${LIBCRYPTO})
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -76,6 +87,7 @@ elseif (WIN32)
 endif()
 add_dependencies(foresteamnd create_includes)
 
+target_include_directories(foresteamnd PUBLIC openssl/include)
 target_link_libraries(foresteamnd ${PLATFORM_LIBS})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

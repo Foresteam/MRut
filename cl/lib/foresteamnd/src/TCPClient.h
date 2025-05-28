@@ -1,5 +1,8 @@
 #pragma once
+#define NOMINMAX
 #include <cstdint>
+#include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <string>
 #include <vector>
 
@@ -38,13 +41,21 @@ private:
   PLATFORM_SOCKET _socket;
   PLATFORM_ADDRESS _address;
 
+  bool _useTls = false;
+#ifdef _WIN32
+  SSL_CTX* _sslCtx = nullptr;
+  SSL* _ssl = nullptr;
+#endif
+
+  bool InitializeTLS(const std::string& host);
+
 public:
   static std::string ResolveIP(std::string host);
 
   /// @deprecated used by the useless TCPServer (C++ seems to not be the best in this)
   TCPClient(PLATFORM_SOCKET socket, PLATFORM_ADDRESS address);
   /// @param host Either domain or IP
-  TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, bool debug = false);
+  TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, bool useTls = true, bool debug = false);
   TCPClient(const TCPClient& other);
   ~TCPClient();
   std::string GetHost() const;
