@@ -7,7 +7,6 @@ import { ClientOneShot } from './ClientOneShot';
 import { Action } from '../common-types';
 import _ from 'lodash';
 import type { Logger } from '../Logger';
-import type { TLSSocket } from 'node:tls';
 import tls from 'node:tls';
 import { configFolder } from '../Db';
 import path from 'node:path';
@@ -83,24 +82,12 @@ export class SecureServer {
     socket.on('close', setClientOffline);
   }
 
-  #handleTLS(socket: TLSSocket) {
-    socket.setNoDelay(true);
-
-    const tempErrorHandler = (err: Error) =>
-      this.#logger.log({ type: 'system', text: `${err}` });
-    socket.on('error', tempErrorHandler);
-    socket.once('secureConnect', () => {
-      this.#handleConnection(socket);
-      socket.removeListener('error', tempErrorHandler);
-    });
-  }
-
   start() {
     const server = tls.createServer({
       key: fs.readFileSync(path.join(configFolder, 'server.key')),
       cert: fs.readFileSync(path.join(configFolder, 'server.crt')),
       minVersion: 'TLSv1.3',
-    }, socket => this.#handleTLS(socket));
+    }, socket => this.#handleConnection(socket));
     server.listen(1337);
     this.#logger.log({ text: 'Server started', type: 'system' });
   }

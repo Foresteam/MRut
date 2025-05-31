@@ -63,12 +63,14 @@ namespace PLATFORM {
     hints.ai_protocol = IPPROTO_TCP;
 
     if (iResult = getaddrinfo(ip.c_str(), std::to_string(port).c_str(), &hints, &addrinfo)) {
+      cerr << "OpenConnection failed: " << WSAGetLastError() << endl;
       CloseConnection(_socket);
       return;
     }
 
     _socket = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
     if (_socket == INVALID_SOCKET) {
+      cerr << "OpenConnection failed: " << WSAGetLastError() << endl;
       freeaddrinfo(addrinfo);
       CloseConnection(_socket);
       return;
@@ -77,6 +79,7 @@ namespace PLATFORM {
     // ====== ADDED TCP_NODELAY ======
     int nodelay = 1; // 1 = enable (disable Nagle's algorithm)
     if (setsockopt(_socket, IPPROTO_TCP, TCP_NODELAY, (char*)&nodelay, sizeof(nodelay)) == SOCKET_ERROR) {
+      cerr << "OpenConnection failed: " << WSAGetLastError() << endl;
       freeaddrinfo(addrinfo);
       CloseConnection(_socket);
       return;
@@ -90,7 +93,9 @@ namespace PLATFORM {
     // Try to connect
     iResult = connect(_socket, addrinfo->ai_addr, (int)addrinfo->ai_addrlen);
     if (iResult == SOCKET_ERROR) {
-      if (WSAGetLastError() != WSAEWOULDBLOCK) {
+      auto error = WSAGetLastError();
+      if (error != WSAEWOULDBLOCK) {
+        cerr << "OpenConnection failed: " << error << endl;
         freeaddrinfo(addrinfo);
         CloseConnection(_socket);
         return;
@@ -107,6 +112,7 @@ namespace PLATFORM {
 
       iResult = select(0, nullptr, &set, nullptr, &timeout);
       if (iResult <= 0) {
+        cerr << "OpenConnection failed: " << WSAGetLastError() << endl;
         // Timeout or error occurred
         freeaddrinfo(addrinfo);
         CloseConnection(_socket);
@@ -120,6 +126,7 @@ namespace PLATFORM {
 
     // Set socket timeouts for send/recv operations
     if (!SetSocketTimeout(_socket, timeout_ms)) {
+      cerr << "OpenConnection failed: " << WSAGetLastError() << endl;
       freeaddrinfo(addrinfo);
       CloseConnection(_socket);
       return;
@@ -203,7 +210,7 @@ void TCPClient::Retry(bool dInitial) {
 void TCPClient::LostConnection() {
   PLATFORM::CloseConnection(_socket);
   if (debug)
-    printf("Connection lost\n");
+    printf("Connection lost %x\n", WSAGetLastError());
   if (retryPolicy == RetryPolicy::THROW)
     throw runtime_error("Connection lost");
 }
@@ -215,6 +222,7 @@ char* TCPClient::ReceiveRawData(size_t* sz) {
     // read size prefix first (on TLS)
     size_t msgLen;
     int n = SSL_read(_ssl, &msgLen, sizeof msgLen);
+    cout << "read " << n << endl;
     if (n <= 0) {
       LostConnection();
       return nullptr;
@@ -244,7 +252,7 @@ char* TCPClient::ReceiveRawData(size_t* sz) {
     LostConnection();
     return nullptr;
   }
-  char* buf = new char[bufSz];
+  auto buf = new char[bufSz];
   if (PLATFORM::Recv(_socket, buf, bufSz, 0) == SOCKET_ERROR) {
     delete[] buf;
     LostConnection();

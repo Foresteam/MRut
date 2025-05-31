@@ -63,3 +63,10 @@ cmake --build . --target ALL_BUILD --config Release
 ![1](screenshots/1.png)
 ![2](screenshots/2.png)
 ![3](screenshots/3.png)
+
+```sh
+openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:secp521r1 -keyout server.key -out server.crt -days 3650 -nodes \
+  -subj "/CN=mrut" \
+  -addext "keyUsage=critical,digitalSignature" \
+  -addext "extendedKeyUsage=serverAuth,clientAuth"
+```
