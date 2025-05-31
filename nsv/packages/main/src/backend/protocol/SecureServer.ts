@@ -86,7 +86,13 @@ export class SecureServer {
   #handleTLS(socket: TLSSocket) {
     socket.setNoDelay(true);
 
-    socket.once('secureConnect', () => this.#handleConnection(socket));
+    const tempErrorHandler = (err: Error) =>
+      this.#logger.log({ type: 'system', text: `${err}` });
+    socket.on('error', tempErrorHandler);
+    socket.once('secureConnect', () => {
+      this.#handleConnection(socket);
+      socket.removeListener('error', tempErrorHandler);
+    });
   }
 
   start() {
@@ -94,7 +100,7 @@ export class SecureServer {
       key: fs.readFileSync(path.join(configFolder, 'server.key')),
       cert: fs.readFileSync(path.join(configFolder, 'server.crt')),
       minVersion: 'TLSv1.3',
-    }, this.#handleTLS);
+    }, socket => this.#handleTLS(socket));
     server.listen(1337);
     this.#logger.log({ text: 'Server started', type: 'system' });
   }
