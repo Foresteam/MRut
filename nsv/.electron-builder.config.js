@@ -11,7 +11,7 @@ if (process.env.VITE_APP_VERSION === undefined) {
  */
 const config = {
   productName: 'MRut server',
-  icon: 'logo.png',
+  icon: '../logo.png',
   directories: {
     output: 'dist',
     buildResources: 'buildResources',
