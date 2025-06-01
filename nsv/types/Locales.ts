@@ -107,6 +107,13 @@ const en = {
   settingsTab: {
     resetDb: 'Clear cache',
     resetDbTooltip: 'Clears the DB (if something is glitchy or whatever)',
+    openConfigFolder: 'Open data folder',
+    openConfigFolderTooltip: 'Open application data folder (logs, db, certificates)',
+    updateCertificates: 'Update certificates',
+    updateCertificatesTooltip: 'Update server certificates',
+    switchThemeTooltip: 'Switch theme',
+    themeLightCaption: 'Light',
+    themeDarkCaption: 'Dark',
   },
 };
 const ru = {
@@ -216,6 +223,13 @@ const ru = {
   settingsTab: {
     resetDb: 'Очистить кеш',
     resetDbTooltip: 'Очистить базу данных (например, если что-то глючит)',
+    openConfigFolder: 'Открыть папку с данными программы',
+    openConfigFolderTooltip: 'Открыть папку с данными программы (логи, БД, сертификаты)',
+    updateCertificates: 'Обновить сертификаты',
+    updateCertificatesTooltip: 'Обновить серверные сертификаты',
+    switchThemeTooltip: 'Переключить тему',
+    themeLightCaption: 'Светлая',
+    themeDarkCaption: 'Темная',
   },
 } satisfies typeof en;
 

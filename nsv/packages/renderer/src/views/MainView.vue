@@ -107,6 +107,7 @@ defineExpose({ cmdLogsPanel });
               'cmd-log': true,
               'cmd-log-cmd': log.type === 'command',
               'cmd-log-system': log.type === 'system',
+              'cmd-log-error': log.type === 'error',
             }"
           >
             {{ formatLog(log, Object.values(store.users))[0] }}
@@ -215,5 +216,9 @@ defineExpose({ cmdLogsPanel });
 
 .cmd-log-system {
   color: var(--text-color-secondary);
+}
+
+.cmd-log-error {
+  color: var(--red-600);
 }
 </style>

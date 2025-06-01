@@ -8,14 +8,13 @@ import { Action } from '../common-types';
 import _ from 'lodash';
 import type { Logger } from '../Logger';
 import tls from 'node:tls';
-import { configFolder } from '../Db';
-import path from 'node:path';
-import fs from 'node:fs';
+import { Certificates } from '../Certififaces';
 
 export class SecureServer {
   #bindClient: (client: Client) => void;
   #onModifyUser: (client: Client, update: Partial<IUser>) => void;
   #logger: Logger;
+  #server?: tls.Server;
 
   constructor(logger: Logger, onModifyUser: (client: Client, update: Partial<IUser>) => void, bindClient: (client: Client) => void) {
     this.#bindClient = bindClient;
@@ -82,13 +81,32 @@ export class SecureServer {
     socket.on('close', setClientOffline);
   }
 
-  start() {
-    const server = tls.createServer({
-      key: fs.readFileSync(path.join(configFolder, 'server.key')),
-      cert: fs.readFileSync(path.join(configFolder, 'server.crt')),
-      minVersion: 'TLSv1.3',
-    }, socket => this.#handleConnection(socket));
-    server.listen(1337);
-    this.#logger.log({ text: 'Server started', type: 'system' });
+  async start() {
+    if (!await Certificates.isOpenSslInstalled()) {
+      this.#logger.log({ type: 'error', text: 'OpenSSL not found' });
+      return;
+    }
+    await Certificates.generate();
+    const certificates = Certificates.getExistingCertificates<true>();
+    try {
+      this.#server = tls.createServer({
+        key: certificates.serverKey,
+        cert: certificates.serverCrt,
+        ca: certificates.rootCrt,
+        minVersion: 'TLSv1.3',
+      }, socket => this.#handleConnection(socket));
+      this.#server.listen(1337);
+      this.#logger.log({ text: 'Server started', type: 'system' });
+    }
+    catch (err) {
+      this.#logger.log({ type: 'error', text: 'Failed to start server', err });
+    }
+  }
+  async restart() {
+    if (this.#server) {
+      this.#server.close();
+      this.#server = undefined;
+    }
+    this.start();
   }
 }

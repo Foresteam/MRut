@@ -1,4 +1,4 @@
-import { dialog, ipcMain } from 'electron';
+import { dialog, ipcMain, shell } from 'electron';
 import * as commands from './commands';
 import { Client } from './protocol/Client';
 import { ActionMessage } from './protocol/Message';
@@ -10,6 +10,8 @@ import * as db from './Db';
 import type { Log } from './Logger';
 import { Logger } from './Logger';
 import { SecureServer } from './protocol/SecureServer';
+import path from 'node:path';
+import { Certificates } from './Certififaces';
 
 let window = undefined as undefined | Electron.BrowserWindow;
 export const setWindow = (w: Electron.BrowserWindow) => window = w;
@@ -173,9 +175,28 @@ export function setupIPC() {
 			return null;
 		return multiple ? result.filePaths : result.filePaths[0];
 	});
+	ipcHandle('openConfigFolder', async (_) => {
+		const folderPath = db.configFolder;
+		if (!folderPath)
+			return false;
+
+		try {
+			await shell.openPath(path.resolve(folderPath));
+			return true;
+		} catch (err) {
+			logger.log({ type: 'error', text: 'Failed to open folder', err });
+			return false;
+		}
+	});
 	ipcHandle('clearDb', async () => {
 		db.clear();
-		console.log('DB cleared');
+		logger.log({ type: 'system', text: 'DB cleared' });
+	});
+	ipcHandle('updateCertificates', async () => {
+		Certificates.deleteServer();
+		await Certificates.generate();
+		logger.log({ type: 'system', text: 'Certificates regenerated' });
+		await server.restart();
 	});
 
 	ipcHandle('sendMouseButton', async (_, { button, state, applyToAll }) => {

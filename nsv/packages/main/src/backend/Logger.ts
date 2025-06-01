@@ -6,17 +6,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { formatLog } from '../../../../shared/formatLogs';
 
-export type LogType = 'command' | 'feedback' | 'system';
+export type LogType = 'command' | 'feedback' | 'system' | 'error';
 export type LogParams = { type: LogType; text: string } & (
   { type: 'command'; targets: Client[] }
   | { type: 'feedback'; sender: Client; }
   | { type: 'system'; targets?: Client[] }
+  | { type: 'error'; err?: unknown }
 );
 export type LogBase = { text: string; time: Date; uuid: string };
 export type Log = LogBase & (
   { type: 'command'; targetIds: number[] }
   | { type: 'feedback'; senderId: number; }
   | { type: 'system'; targetIds?: number[] }
+  | { type: 'error'; err?: unknown }
 );
 type ClientLogFunction = (params: Log) => unknown;
 
@@ -117,9 +119,14 @@ export class Logger {
       case 'system':
         log = { ...base, type: params.type, targetIds: params.targets?.map(t => t.public.id) };
         break;
+      case 'error': {
+        const err = params.err;
+        log = { ...base, type: params.type, err: typeof err === 'object' ? { ...err } : err };
+        break;
+      }
     }
     if (toSTDIO)
-      console.log(formatLog(log, this.#getClients().map(c => c.public)).join(' '));
+      (log.type === 'error' ? console.error : console.log)(formatLog(log, this.#getClients().map(c => c.public)).join(' '));
 
     this.logs.push(log);
     this.#logCommand(log);

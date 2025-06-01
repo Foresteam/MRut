@@ -16,6 +16,14 @@ export const formatLog = (log: ICmdLog, users: IUser[]): string[] => {
     case 'system': {
       return [`[${time} SYSTEM]`, `${text.split('\n').join('\n\t')}`, `${log.targetIds ? `[${log.targetIds.join(', ')}]` : ''}`];
     }
+    case 'error': {
+      let json;
+      try {
+        json = JSON.stringify(log.err);
+      }
+      catch { json = 'could not transform'; }
+      return [`[${time} ERROR]`, `${text.split('\n').join('\n\t')}`, json];
+    }
   }
   throw new Error('Not implemented');
 };

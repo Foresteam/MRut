@@ -9,7 +9,9 @@ export interface BackendAPI {
 	getLogs: () => Promise<ICmdLog[]>;
 	updateUser: (id: number, user: Partial<IUser>) => Promise<any>;
 	openFilePicker: <T extends boolean = false>(multiple?: T, directory?: boolean) => Promise<(T extends true ? string[] : string) | null>;
+	openConfigFolder: () => Promise<boolean>;
 	clearDb: () => Promise<any>;
+	updateCertificates: () => Promise<void>;
 
 	sendMouseButton: (params: { button: MouseButton; state: boolean; applyToAll?: boolean }) => Promise<void>;
 	sendMouseScroll: (params: { pixels: number; applyToAll?: boolean }) => Promise<void>;
