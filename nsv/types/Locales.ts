@@ -1,6 +1,6 @@
 import type { IUser } from './Common';
 
-const en = {
+export const en = {
   language: 'English',
   main: 'Main',
   ok: 'Ok',
@@ -42,6 +42,17 @@ const en = {
           title: (user: IUser) => `User#${user.id} ${user.name || user.hostname} (${user.address})`,
         },
       },
+    },
+    runCommandsFromFile: {
+      title: 'Run commands from file',
+      help: [
+        'Execute primitive script: simply text file with list of commands separated by new line.',
+        'Execute JS code: JavaScript code, where final statement should be array of strings - the commands to execute.',
+        'Available functions in JS: Log, LogError - varArg functions that accept any arguments and log to the UI',
+        'Examples of both methods you can view in commands-examples on GitHub',
+      ],
+      selectFileSimpleButtonText: 'Simple script',
+      selectFileJsButtonText: 'JS code',
     },
   },
   fileManager: {
@@ -123,6 +134,36 @@ const en = {
     generateCertificatesError: 'Could not generate certificates',
     serverStarted: 'Server started',
     serverStartError: 'Failed to start server',
+
+    failedToOpenFolder: 'Failed to open folder',
+    dbCleared: 'DB cleared',
+    certificatesRegenerated: 'Certificates regenerated',
+
+    runFileInvalidResult: 'Run from file: Invalid return type (expected array of string)',
+    runFileError: 'Run from file: script error',
+  },
+  commands: {
+    download: 'Download remote file',
+    upload: 'Upload local file',
+    frun: 'Execute Lua code from file on server (your computer)',
+    exec: 'Execute system command, as subprocess',
+    listdisks: 'List disks (Windows only)',
+    listdir: 'List directory',
+    listplaces: 'List places (home, photos, etc.)',
+    mkdir: 'Create directory',
+    touch: 'Create file',
+    delete: 'Delete file/directory, recursively',
+    move: 'Move file/directory',
+    copy: 'Copy file/directory',
+    rename: 'Rename file/directory',
+    logs: 'Print logs',
+    mouselock: 'Set mouse input lock',
+    keyboardlock: 'Set keyboard input lock',
+    prompt: 'Request text input',
+    alertconfirm: 'Set keyboard input lock',
+    alertok: 'Set keyboard input lock',
+    help: 'Print help',
+    run: 'Execute Lua code',
   },
 };
 const ru = {
@@ -167,6 +208,17 @@ const ru = {
           title: (user: IUser) => `Пользователь#${user.id} ${user.name || user.hostname} (${user.address})`,
         },
       },
+    },
+    runCommandsFromFile: {
+      title: 'Выполнить команды из файла',
+      help: [
+        'Выполнить примитивный скрипт: просто текстовый файл со списком команд, разделенных по строкам.',
+        'Выполнить код JS: код JavaScript, где конечный оператор должен быть массивом строк - команд для выполнения.',
+        'Доступные функции в JS: Log, LogError - функции varArg, которые принимают любые аргументы и отправляют лог в пользовательский интерфейс',
+        'Примеры обоих вариантов скрипов можно посмотреть в commands-examples на GitHub',
+      ],
+      selectFileSimpleButtonText: 'Простой скрипт',
+      selectFileJsButtonText: 'JS-код',
     },
   },
   fileManager: {
@@ -242,12 +294,42 @@ const ru = {
   },
 
   serverLogs: {
-    clientConnected: 'Client connected',
-    clientDisconnected: 'Client lost connection',
-    generateCertificatesErrorOpenssl: 'Could not generate certificates: OpenSSL not found',
-    generateCertificatesError: 'Could not generate certificates',
-    serverStarted: 'Server started',
-    serverStartError: 'Failed to start server',
+    clientConnected: 'Клиент подключился',
+    clientDisconnected: 'Клиент отключился',
+    generateCertificatesErrorOpenssl: 'Не удалось сгенерировать сертификаты: OpenSSL не найден',
+    generateCertificatesError: 'Не удалось сгенерировать сертификаты',
+    serverStarted: 'Сервер запущен',
+    serverStartError: 'Не удалось запустить сервер',
+
+    failedToOpenFolder: 'Не удалось открыть папку',
+    dbCleared: 'База данных очищена',
+    certificatesRegenerated: 'Сертификаты обновлены',
+
+    runFileInvalidResult: 'Запуск из файла: Неправильный тип возвращаемого значения (ожидался массив строк)',
+    runFileError: 'Запуск из файла: ошибка в коде',
+  },
+  commands: {
+    download: 'Скачать файл с удаленного компьютера',
+    upload: 'Загрузить файл на удаленный компьютер',
+    frun: 'Выполнить Lua-код на удаленном ПК из файла на сервере (с вашего компьютера)',
+    exec: 'Выполнить системную команду как подпроцесс',
+    listdisks: 'Показать диски (только Windows)',
+    listdir: 'Показать содержимое каталога',
+    listplaces: 'Показать избранные места (домашняя папка, фото и т.д.)',
+    mkdir: 'Создать каталог',
+    touch: 'Создать файл',
+    delete: 'Удалить файл/каталог (рекурсивно)',
+    move: 'Переместить файл/каталог',
+    copy: 'Копировать файл/каталог',
+    rename: 'Переименовать файл/каталог',
+    logs: 'Вывести логи клиентов',
+    mouselock: 'Заблокировать ввод мыши удаленного ПК',
+    keyboardlock: 'Заблокировать ввод с клавиатуры удаленного ПК',
+    prompt: 'Запросить текстовый ввод',
+    alertconfirm: 'Показать окно подтверждения',
+    alertok: 'Показать окно уведомления',
+    help: 'Показать справку',
+    run: 'Выполнить Lua-код (строку)',
   },
 } satisfies typeof en;
 

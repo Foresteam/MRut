@@ -7,10 +7,11 @@ export type { ConfigData } from '../packages/main/src/backend/Config';
 
 export interface BackendAPI {
 	exec: <T extends boolean = false>(line: string, targets?: number[], expectFeedback?: T) => Promise<T extends true ? Record<string, string[]> : void>;
+	execFile: (fileName: string) => Promise<void>;
 	getUsers: () => Promise<IUser[]>;
 	getLogs: () => Promise<ICmdLog[]>;
 	updateUser: (id: number, user: Partial<IUser>) => Promise<any>;
-	openFilePicker: <T extends boolean = false>(multiple?: T, directory?: boolean) => Promise<(T extends true ? string[] : string) | null>;
+	openFilePicker: <T extends boolean = false>(multiple?: T, directory?: boolean, filters?: { extensions: string[]; name: string }[]) => Promise<(T extends true ? string[] : string) | null>;
 	openConfigFolder: () => Promise<boolean>;
 	clearDb: () => Promise<any>;
 	updateCertificates: () => Promise<void>;

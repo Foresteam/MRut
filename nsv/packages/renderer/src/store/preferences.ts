@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { useLocalStorage } from '@vueuse/core';
-import { activeLanguage } from '$types/Locales';
+import { activeLanguage } from '../../../../types/Locales';
 import { computed, ref, watch } from 'vue';
 
 export const usePreferencesStore = defineStore('preferences', () => {
@@ -20,6 +20,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
 	return {
 		languageRussian,
 		themeLight,
+		getConfig,
 		l: () => activeLanguage(languageRussian.value)
 	};
 });

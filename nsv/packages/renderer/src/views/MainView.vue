@@ -13,10 +13,12 @@ import type { MenuItem } from 'primevue/menuitem';
 import { IUser } from '$types/Common';
 import InputDialog from '@/components/InputDialog.vue';
 import { formatLog } from '../../../../shared/formatLogs';
+import CommandsFromFileDialog from '../components/CommandsFromFileDialog.vue';
 
 const store = useGeneralStore();
 const { cmdLogs } = storeToRefs(store);
 const { l } = usePreferencesStore();
+const russian = storeToRefs(usePreferencesStore()).languageRussian;
 
 const { updateUser } = store;
 
@@ -43,6 +45,7 @@ onActivated(() => {
 
 const renameUser = async (user: IUser, name: string) => store.updateUser(user.id, { name: name || undefined });
 const userRenameDialog = ref<ComponentPublicInstance<InstanceType<typeof InputDialog>>>();
+const commandsFromFileDialog = ref<ComponentPublicInstance<InstanceType<typeof CommandsFromFileDialog>>>();
 
 const userCtxMenu = ref<ComponentPublicInstance<InstanceType<typeof PContextMenu>>>();
 const selectedUser = ref<IUser>();
@@ -110,10 +113,10 @@ defineExpose({ cmdLogsPanel });
               'cmd-log-error': log.type === 'error',
             }"
           >
-            {{ formatLog(log, Object.values(store.users))[0] }}
-            <template v-if="log.text.includes('\\n')">
+            {{ formatLog(log, Object.values(store.users), russian)[0] }}
+            <template v-if="formatLog(log, Object.values(store.users), russian)[1].includes('\\n')">
               <div
-                v-for="(line, i) in log.text.split('\\n')"
+                v-for="(line, i) in formatLog(log, Object.values(store.users), russian)[1].split('\\n')"
                 :key="`log#${log.uuid}#${i}`"
                 class="flex-col cmd-log-line"
               >
@@ -121,7 +124,7 @@ defineExpose({ cmdLogsPanel });
               </div>
             </template>
             <template v-else>
-              {{ log.text }}
+              {{ formatLog(log, Object.values(store.users), russian)[1] }}
             </template>
             {{ formatLog(log, Object.values(store.users))[2] }}
           </div>
@@ -140,6 +143,12 @@ defineExpose({ cmdLogsPanel });
           class="button-bigtext"
           @click="sendCommand(command)"
         />
+        <p-btn
+          icon="pi pi-code"
+          :title="l().mainView.runCommandsFromFile.title"
+          class="button-bigtext"
+          @click="commandsFromFileDialog?.show()"
+        />
       </div>
       <InputDialog
         ref="userRenameDialog"
@@ -148,6 +157,7 @@ defineExpose({ cmdLogsPanel });
         :initial-value="selectedUser?.name"
         @submit="selectedUser && renameUser(selectedUser, $event)"
       />
+      <CommandsFromFileDialog ref="commandsFromFileDialog" />
     </div>
   </div>
 </template>
@@ -204,6 +214,7 @@ defineExpose({ cmdLogsPanel });
   white-space: normal;
   word-wrap: break-word;
   word-break: break-word;
+  font-weight: bold;
 }
 
 .cmd-log-line {
@@ -216,9 +227,11 @@ defineExpose({ cmdLogsPanel });
 
 .cmd-log-system {
   color: var(--text-color-secondary);
+  font-weight: normal;
 }
 
 .cmd-log-error {
   color: var(--red-600);
+  font-weight: normal;
 }
 </style>

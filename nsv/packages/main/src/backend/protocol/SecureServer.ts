@@ -9,6 +9,7 @@ import _ from 'lodash';
 import type { Logger } from '../Logger';
 import tls from 'node:tls';
 import { Certificates } from '../Certififaces';
+import { en } from '../../../../../types/Locales';
 
 export class SecureServer {
   #bindClient: (client: Client) => void;
@@ -32,7 +33,7 @@ export class SecureServer {
 
       this.#onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username']));
       await client.sendMessage(JSON.stringify({}));
-      this.#logger.log({ type: 'system', text: 'Client connected', targets: [client] });
+      this.#logger.log({ type: 'system', text: en.serverLogs.clientConnected, targets: [client] });
     }
     catch (e) {
       console.error('Handshake failed');
@@ -75,7 +76,7 @@ export class SecureServer {
         console.error(e);
       client.public.online = false;
       this.#onModifyUser(client, { online: client.public.online });
-      this.#logger.log({ type: 'system', text: 'Client lost connection', targets: [client] });
+      this.#logger.log({ type: 'system', text: en.serverLogs.clientDisconnected, targets: [client] });
     };
     socket.on('error', setClientOffline);
     socket.on('close', setClientOffline);
@@ -87,10 +88,10 @@ export class SecureServer {
     }
     catch (err) {
       if (!await Certificates.isOpenSslInstalled()) {
-        this.#logger.log({ type: 'error', text: 'Could not generate certificates: OpenSSL not found' });
+        this.#logger.log({ type: 'error', text: en.serverLogs.generateCertificatesErrorOpenssl });
         return;
       }
-      this.#logger.log({ type: 'error', text: 'Could not generate certificates', err });
+      this.#logger.log({ type: 'error', text: en.serverLogs.generateCertificatesError, err });
     }
     const certificates = Certificates.getExistingCertificates<true>();
     try {
@@ -101,10 +102,10 @@ export class SecureServer {
         minVersion: 'TLSv1.3',
       }, socket => this.#handleConnection(socket));
       this.#server.listen(1337);
-      this.#logger.log({ text: 'Server started', type: 'system' });
+      this.#logger.log({ text: en.serverLogs.serverStarted, type: 'system' });
     }
     catch (err) {
-      this.#logger.log({ type: 'error', text: 'Failed to start server', err });
+      this.#logger.log({ type: 'error', text: en.serverLogs.serverStartError, err });
     }
   }
   async restart() {

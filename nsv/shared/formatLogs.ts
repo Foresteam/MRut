@@ -1,10 +1,15 @@
 import type { ICmdLog, IUser } from '../types/Common';
+import * as Locales from '../types/Locales';
 
-export const formatLog = (log: ICmdLog, users: IUser[]): string[] => {
+export const formatLog = (log: ICmdLog, users: IUser[], russian?: boolean): string[] => {
   let time = log.time.toTimeString();
   time = time.substring(0, time.indexOf(' GMT'));
 
-  const { text } = log;
+  let text = log.text;
+  const localeKey = Object.entries(Locales.en.serverLogs).find(([_, value]) => value === text)?.[0] as undefined | keyof typeof Locales.en.serverLogs;
+  if (localeKey)
+    text = Locales.activeLanguage(russian ?? false).serverLogs[localeKey];
+
   switch (log.type) {
     case 'feedback': {
       const sender = users.find(user => user.id === log.senderId);

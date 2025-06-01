@@ -41,6 +41,7 @@ exposeTyped<BackendAPI>('backend', {
 	// EditOpen: options => ipcRenderer.invoke('EditOpen', options),
 	// EditClose: () => ipcRenderer.send('EditClose')
 	exec: (...args) => ipcRenderer.invoke('exec', ...args),
+	execFile: (...args) => ipcRenderer.invoke('execFile', ...args),
 	getUsers: (...args) => ipcRenderer.invoke('getUsers', ...args),
 	getLogs: (...args) => ipcRenderer.invoke('getLogs', ...args),
 	updateUser: (...args) => ipcRenderer.invoke('updateUser', ...args),

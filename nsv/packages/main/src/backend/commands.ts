@@ -3,27 +3,31 @@ import type { Client } from './protocol/Client';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
 import type { Logger } from './Logger';
+import { activeLanguage } from '../../../../types/Locales';
+import { Config } from './Config';
 
-type CommandFunction = (clients: Client[], netQ: (client: Client) => Client['netQueue'][number]['queue']) => unknown;
+type CommandFunction = (clients: Client[], netQ: (client: Client) => Client['netQueue'][number]['queue'], logger: Logger) => unknown;
 export type Commands = typeof commands;
 type QueuedCommand = { clientIds: number[]; action: CommandFunction; id: number; name: keyof Commands | null };
 type RunningQueuedCommand = QueuedCommand & { results: Record<string, string[]>; accumulateResults: boolean; resolve?: () => void };
 
 export const luaString = (value: string) => `'${value.replaceAll('\'', '\\\'')}'`;
 
+const russian = new Config().language === 'ru';
+
 const argParser = new ArgParser('');
 const commands = {
 	download: new Command(
 		['download'],
 		[{ type: 'string', name: 'src' }, { type: 'string|', name: 'dst' }],
-		'Download remote file',
+		activeLanguage(russian).commands['download'],
 		({ args: { src, dst } }: { args: { src: string, dst: string } }): CommandFunction => (clients, netQ) => clients.forEach(v => {
 			netQ(v).push([() => v.expectFile(dst || basename(src.replaceAll('\\', '/'))), `SendFile('${src}'); Print('send')`]);
 		})),
 	upload: new Command(
 		['upload'],
 		[{ type: 'string', name: 'src' }, { type: 'string|', name: 'dst' }],
-		'Uownload local file',
+		activeLanguage(russian).commands['upload'],
 		({ args: { src, dst } }: { args: { src: string, dst: string } }): CommandFunction => (clients, netQ) => clients.forEach(v => {
 			netQ(v).push([
 				`ReceiveFile('${dst || basename(src)}')`, // command to receive
@@ -33,25 +37,25 @@ const commands = {
 	frun: new Command(
 		['frun'],
 		[{ type: '...string', name: 'filename' }],
-		'Execute Lua code from file on server (your computer)',
+		activeLanguage(russian).commands['frun'],
 		({ args: { filename } }: { args: { filename: string[] } }): CommandFunction => (clients, netQ) => clients.forEach(v => netQ(v).push([readFileSync(filename.join(' ')).toString()]))),
 	exec: new Command(
 		['exec', '>', '!exec', '!>'],
 		[{ type: '...string', name: 'cmd' }],
-		'Execute system command, as subprocess',
+		activeLanguage(russian).commands['exec'],
 		({ args: { cmd }, refwith }: { args: { cmd: string[] }, refwith: string }): CommandFunction =>
 			(clients, netQ) => clients.forEach(v => netQ(v).push([`${refwith.startsWith('!') ? 'A' : ''}Exec(${luaString(cmd.join(' '))})`]))),
 	listdisks: new Command(
 		['listdisks', 'ldisks'],
 		[],
-		'List disks (Windows only)',
+		activeLanguage(russian).commands['listdisks'],
 		(): CommandFunction => (clients, netQ) => clients.forEach(v => netQ(v).push([
 			'ListDisks()',
 		]))),
 	listdir: new Command(
 		['listdir', 'ls', 'dir'],
 		[{ type: 'string|', name: 'path' }],
-		'List directory',
+		activeLanguage(russian).commands['listdir'],
 		({ args: { path } }: { args: { path: string } }): CommandFunction => (clients, netQ) => {
 			console.log(`ListDirectory('${path || '.'}')`);
 			clients.forEach(c => netQ(c).push([`ListDirectory(${luaString(path || '.')})`]));
@@ -59,91 +63,102 @@ const commands = {
 	listplaces: new Command(
 		['listplaces', 'lsplaces', 'places'],
 		[],
-		'List places (home, photos, etc.)',
+		activeLanguage(russian).commands['listplaces'],
 		(): CommandFunction => (clients, netQ) => clients.forEach(c => netQ(c).push(['ListPlaces()']))),
 	mkdir: new Command(
 		['mkdir', 'md'],
 		[{ type: 'string', name: 'path' }],
-		'Create directory',
+		activeLanguage(russian).commands['mkdir'],
 		({ args: { path } }: { args: { path: string } }): CommandFunction => (clients, netQ) => clients.forEach(c => netQ(c).push([`MkDir(${luaString(path)})`]))),
 	touch: new Command(
 		['touch'],
 		[{ type: 'string', name: 'path' }],
-		'Create file',
+		activeLanguage(russian).commands['touch'],
 		({ args: { path } }: { args: { path: string } }): CommandFunction => (clients, netQ) => clients.forEach(c => netQ(c).push([`Touch(${luaString(path)})`]))),
 	delete: new Command(
 		['delete', 'del', 'rm', 'rmdir', 'rd'],
 		[{ type: 'string', name: 'path' }],
-		'Delete file/directory, recursively',
+		activeLanguage(russian).commands['delete'],
 		({ args: { path } }: { args: { path: string } }): CommandFunction => (clients, netQ) => clients.forEach(c => netQ(c).push([`Delete(${luaString(path)})`]))),
 	move: new Command(
 		['move', 'mv'],
 		[{ type: 'string', name: 'source' }, { type: 'string', name: 'destination' }],
-		'Move file/directory',
+		activeLanguage(russian).commands['move'],
 		({ args: { source, destination } }: { args: { source: string; destination: string } }): CommandFunction =>
 			(clients, netQ) => clients.forEach(c => netQ(c).push([`Move({${luaString(source)}}, ${luaString(destination)})`])),
 	),
 	copy: new Command(
 		['copy', 'cp'],
 		[{ type: 'string', name: 'source' }, { type: 'string', name: 'destination' }],
-		'Copy file/directory',
+		activeLanguage(russian).commands['copy'],
 		({ args: { source, destination } }: { args: { source: string; destination: string } }): CommandFunction =>
 			(clients, netQ) => clients.forEach(c => netQ(c).push([`Copy({${luaString(source)}}, ${luaString(destination)})`])),
 	),
 	rename: new Command(
 		['rename'],
 		[{ type: 'string', name: 'source' }, { type: 'string', name: 'destination' }],
-		'Rename file/directory',
+		activeLanguage(russian).commands['rename'],
 		({ args: { source, destination } }: { args: { source: string; destination: string } }): CommandFunction =>
 			(clients, netQ) => clients.forEach(c => netQ(c).push([`Rename(${luaString(source)}, ${luaString(destination)})`])),
 	),
 	logs: new Command(
 		['logs'],
 		[],
-		'Print logs',
+		activeLanguage(russian).commands['logs'],
 		(): CommandFunction =>
 			(clients, netQ) => clients.forEach(c => netQ(c).push(['Logs()'])),
 	),
 	mouselock: new Command(
 		['mouselock', 'mlock'],
 		[{ type: 'bool', name: 'value' }],
-		'Set mouse input lock',
+		activeLanguage(russian).commands['mouselock'],
 		({ args: { value } }: { args: { value: boolean } }): CommandFunction =>
 			(clients) => clients.forEach(c => c.inputQueue.push(`input.MouseSetLocked(${value})`)),
 	),
 	keyboardlock: new Command(
 		['keyboardlock', 'kblock'],
 		[{ type: 'bool', name: 'value' }],
-		'Set keyboard input lock',
+		activeLanguage(russian).commands['keyboardlock'],
 		({ args: { value } }: { args: { value: boolean } }): CommandFunction =>
 			(clients) => clients.forEach(c => c.inputQueue.push(`input.KeyboardSetLocked(${value})`)),
 	),
 	prompt: new Command(
 		['prompt', 'inputbox'],
 		[],
-		'Request text input',
+		activeLanguage(russian).commands['prompt'],
 		(): CommandFunction =>
 			(clients, netQ) => clients.forEach(c => netQ(c).push('DialogInput()')),
 	),
 	alertconfirm: new Command(
 		['alertconfirm', 'alertyesno', 'alertquestion', 'messageboxconfirm'],
 		[{ type: 'string|', name: 'title' }, { type: 'string|', name: 'text' }, { type: 'string|', name: 'type' }],
-		'Set keyboard input lock',
+		activeLanguage(russian).commands['alertconfirm'],
 		({ args: { title, text, type } }: { args: { title: string; text: string; type: string; } }): CommandFunction =>
 			(clients, netQ) => clients.forEach(c => netQ(c).push(`DialogConfirm(${luaString(title || '')}, ${luaString(text || '')}, dialog.type.${type || 'BLANK'})`)),
 	),
 	alertok: new Command(
 		['alertok', 'alert', 'message', 'messageboxok'],
 		[{ type: 'string|', name: 'title' }, { type: 'string|', name: 'text' }, { type: 'string|', name: 'type' }],
-		'Set keyboard input lock',
+		activeLanguage(russian).commands['alertok'],
 		({ args: { title, text, type } }: { args: { title: string; text: string; type: string; } }): CommandFunction =>
 			(clients, netQ) => clients.forEach(c => netQ(c).push(`DialogOk(${luaString(title || '')}, ${luaString(text || '')}, dialog.type.${type || 'BLANK'})`)),
+	),
+	help: new Command(
+		['help', '?'],
+		[],
+		activeLanguage(russian).commands['help'],
+		(): CommandFunction => (_, __, logger) => {
+			const help: string[] = [];
+			for (const [_, command] of Object.entries(commands))
+				help.push(command.printHelp());
+			logger.log({ type: 'system', text: help.join('\\n') });
+		},
 	),
 
 	run: new Command(
 		['run', ''],
 		[{ type: '...string', name: 'cmd' }],
-		'Execute Lua code',
+		activeLanguage(russian).commands['run'],
 		({ args: { cmd } }: { args: { cmd: string[] } }): CommandFunction => (clients, netQ) => clients.forEach(v => netQ(v).push([cmd.join(' ')]))),
 } as const;
 
@@ -154,8 +169,8 @@ let queueId = 0;
 
 export const getConnectedClients = () => clients.filter(v => v.public.connected);
 
-type RunQueuedParams = { accumulateResults?: boolean } & ({ resolve?: (data: Record<string, string[]>) => void });
-const _RunCommand = ({ accumulateResults = false, resolve }: RunQueuedParams, cmd: QueuedCommand) => {
+type RunQueuedParams = { accumulateResults?: boolean; logger: Logger } & ({ resolve?: (data: Record<string, string[]>) => void });
+const _RunCommand = ({ accumulateResults = false, resolve, logger }: RunQueuedParams, cmd: QueuedCommand) => {
 	const running: RunningQueuedCommand = { ...cmd, results: {}, accumulateResults };
 	if (accumulateResults && resolve)
 		running.resolve = () => resolve(running.results);
@@ -166,10 +181,10 @@ const _RunCommand = ({ accumulateResults = false, resolve }: RunQueuedParams, cm
 		c.netQueue.push(netQ);
 		return [c.public.id, netQ];
 	}));
-	(cmd as Partial<QueuedCommand>).action?.(clients.filter(c => cmd.clientIds.includes(c.public.id)), client => netQueuesByClientId[client.public.id].queue);
+	(cmd as Partial<QueuedCommand>).action?.(clients.filter(c => cmd.clientIds.includes(c.public.id)), client => netQueuesByClientId[client.public.id].queue, logger);
 	return running;
 };
-export const Exec = (line: string, logger: Logger, targets?: number[], params: RunQueuedParams = {}) => {
+export const Exec = (line: string, logger: Logger, targets?: number[], params: RunQueuedParams = { logger }) => {
 	const parsed = argParser.parse(line, Object.values(commands));
 	if (!parsed)
 		return null;

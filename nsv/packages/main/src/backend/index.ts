@@ -14,6 +14,9 @@ import path from 'node:path';
 import { Certificates } from './Certififaces';
 import type { ConfigData } from './Config';
 import { Config } from './Config';
+import { en } from '../../../../types/Locales';
+import fs from 'node:fs';
+import vm from 'node:vm';
 
 let window = undefined as undefined | Electron.BrowserWindow;
 export const setWindow = (w: Electron.BrowserWindow) => window = w;
@@ -137,9 +140,38 @@ export function setupIPC() {
 		console.log('call', line, targets, expectFeedback);
 		if (expectFeedback) {
 			console.log('expect!', targets, line);
-			return await new Promise(resolve => commands.Exec(line, logger, targets, { accumulateResults: true, resolve }));
+			return await new Promise(resolve => commands.Exec(line, logger, targets, { accumulateResults: true, resolve, logger }));
 		}
 		commands.Exec(line, logger);
+	});
+	ipcHandle('execFile', async (_, fileName) => {
+		const code = fs.readFileSync(fileName, 'utf-8');
+		let lines: string[];
+		console.info(fileName, path.extname(fileName));
+		if (path.extname(fileName) === '.js') {
+			const context = {
+				path,
+				Log: (...args: unknown[]) => logger.log({ type: 'system', text: args.map(arg => `${arg}`).join('\\n') }),
+				LogError: (...args: unknown[]) => logger.log({ type: 'error', text: args.map(arg => `${arg}`).join('\\n') }),
+			};
+			try {
+				const rs: unknown = await vm.runInNewContext(code, context);
+				if (typeof rs !== 'object' || !Array.isArray(rs)) {
+					logger.log({ type: 'error', text: en.serverLogs.runFileInvalidResult });
+					return;
+				}
+				lines = rs.map(v => `${v}`);
+			}
+			catch (err) {
+				logger.log({ type: 'error', text: en.serverLogs.runFileError, err: (err as Error).message });
+				return;
+			}
+		}
+		else
+			lines = code.split('\n');
+
+		for (const line of lines)
+			commands.Exec(line.trim(), logger);
 	});
 	ipcHandle('getUsers', async () => commands.clients.map(v => v.public));
 	ipcHandle('getLogs', async () => logger.logs);
@@ -160,9 +192,9 @@ export function setupIPC() {
 		if (!_.isEqual(oldPublic, clientPublic))
 			client.save();
 		if (netQ.length)
-			commands.RunAnonymous({}, [id], (clients, _netQ) => clients.forEach(c => _netQ(c).splice(_netQ(c).length, 0, ...netQ)));
+			commands.RunAnonymous({ logger }, [id], (clients, _netQ) => clients.forEach(c => _netQ(c).splice(_netQ(c).length, 0, ...netQ)));
 	});
-	ipcHandle('openFilePicker', async (_, multiple = false, directory = false) => {
+	ipcHandle('openFilePicker', async (_, multiple = false, directory = false, filters) => {
 		const properties: Parameters<typeof dialog.showOpenDialog>[0]['properties'] = [directory ? 'openDirectory' : 'openFile'];
 		if (multiple) {
 			properties.push('multiSelections');
@@ -172,6 +204,7 @@ export function setupIPC() {
 			properties,
 			title: 'Select file(s)',
 			buttonLabel: 'Select',
+			filters: !directory && filters || undefined,
 		});
 
 		if (result.canceled || !result.filePaths.length)
@@ -187,18 +220,18 @@ export function setupIPC() {
 			await shell.openPath(path.resolve(folderPath));
 			return true;
 		} catch (err) {
-			logger.log({ type: 'error', text: 'Failed to open folder', err });
+			logger.log({ type: 'error', text: en.serverLogs.failedToOpenFolder, err });
 			return false;
 		}
 	});
 	ipcHandle('clearDb', async () => {
 		db.clear();
-		logger.log({ type: 'system', text: 'DB cleared' });
+		logger.log({ type: 'system', text: en.serverLogs.dbCleared });
 	});
 	ipcHandle('updateCertificates', async () => {
 		Certificates.deleteServer();
 		await Certificates.generate();
-		logger.log({ type: 'system', text: 'Certificates regenerated' });
+		logger.log({ type: 'system', text: en.serverLogs.certificatesRegenerated });
 		await server.restart();
 	});
 
