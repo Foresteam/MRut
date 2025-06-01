@@ -197,7 +197,7 @@ namespace PLATFORM {
 void TCPClient::Retry(bool dInitial) {
   if (_socket != INVALID_SOCKET)
     return;
-  if (debug) {
+  if (_debug) {
     if (dInitial)
       printf("Connecting...\n");
     else
@@ -209,9 +209,9 @@ void TCPClient::Retry(bool dInitial) {
 }
 void TCPClient::LostConnection() {
   PLATFORM::CloseConnection(_socket);
-  if (debug)
+  if (_debug)
     printf("Connection lost %x\n", WSAGetLastError());
-  if (retryPolicy == RetryPolicy::THROW)
+  if (_retryPolicy == RetryPolicy::THROW)
     throw runtime_error("Connection lost");
 }
 char* TCPClient::ReceiveRawData(size_t* sz) {
@@ -315,14 +315,24 @@ bool TCPClient::SendData(const std::vector<std::pair<const char*, size_t>>& data
 }
 bool TCPClient::SendData(const std::string& data) { return SendData(data.c_str(), data.length()); }
 TCPClient::TCPClient(PLATFORM_SOCKET socket, PLATFORM_ADDRESS address) : _socket(socket), _address(address) {}
-TCPClient::TCPClient(const TCPClient& other) : TCPClient(other._host, other._port, other.retryPolicy, other.debug) {}
-TCPClient::TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, bool useTls, bool debug) {
-  this->retryPolicy = retryPolicy;
-  this->debug = debug;
+TCPClient::TCPClient(const TCPClient& other) : TCPClient(other._host, other._port, other._retryPolicy, other._debug) {}
+TCPClient::TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, bool debug) {
+  this->_retryPolicy = retryPolicy;
+  this->_debug = debug;
   _socket = INVALID_SOCKET;
   _host = host;
   _port = port;
-  _useTls = useTls;
+  _useTls = false;
+  Retry(true);
+}
+TCPClient::TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, const std::vector<unsigned char>& rootCertificate, bool debug) {
+  this->_retryPolicy = retryPolicy;
+  this->_debug = debug;
+  _socket = INVALID_SOCKET;
+  _host = host;
+  _port = port;
+  _useTls = true;
+  _rootCertificate = rootCertificate;
   Retry(true);
 }
 
@@ -371,44 +381,72 @@ std::string TCPClient::ResolveIP(std::string host) {
 bool TCPClient::InitializeTLS(const std::string& host) {
 #ifdef _WIN32
   if (_sslCtx)
-    return true; // already done
+    return true;
 
   SSL_load_error_strings();
   OpenSSL_add_ssl_algorithms();
 
-  // 1) Create a client‐only context that *only* allows TLS1.3
   _sslCtx = SSL_CTX_new(TLS_client_method());
   if (!_sslCtx) {
-    if (retryPolicy == THROW)
+    if (_retryPolicy == THROW)
       throw std::runtime_error("SSL_CTX_new failed");
-    else
-      return false;
+    return false;
   }
+
   SSL_CTX_set_min_proto_version(_sslCtx, TLS1_3_VERSION);
   SSL_CTX_set_max_proto_version(_sslCtx, TLS1_3_VERSION);
 
-  // 2) Create an SSL object & bind it to our socket
+  // === Load root CA ===
+  BIO* bio = BIO_new_mem_buf(_rootCertificate.data(), -1);
+  if (!bio) {
+    if (_retryPolicy == THROW)
+      throw std::runtime_error("Failed to load root CA into BIO");
+    return false;
+  }
+
+  X509* ca_cert = PEM_read_bio_X509(bio, nullptr, nullptr, nullptr);
+  BIO_free(bio);
+
+  if (!ca_cert) {
+    if (_retryPolicy == THROW)
+      throw std::runtime_error("Failed to parse root CA cert");
+    return false;
+  }
+
+  X509_STORE* store = SSL_CTX_get_cert_store(_sslCtx);
+  if (X509_STORE_add_cert(store, ca_cert) != 1) {
+    X509_free(ca_cert);
+    if (_retryPolicy == THROW)
+      throw std::runtime_error("Failed to add root CA to store");
+    return false;
+  }
+
+  X509_free(ca_cert);
+
+  // === Create SSL object ===
   _ssl = SSL_new(_sslCtx);
   if (!_ssl) {
-    if (retryPolicy == THROW)
+    if (_retryPolicy == THROW)
       throw std::runtime_error("SSL_new failed");
-    else
-      return false;
+    return false;
   }
-  SSL_set_fd(_ssl, static_cast<int>(_socket));
 
-  // 3) Enable SNI (so virtual hosts work)
+  SSL_set_fd(_ssl, static_cast<int>(_socket));
   SSL_set_tlsext_host_name(_ssl, host.c_str());
 
-  // 4) Perform the TLS handshake
+  // === Perform handshake ===
   if (SSL_connect(_ssl) != 1) {
     char buf[256];
     ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-    if (retryPolicy == THROW)
-      throw std::runtime_error(std::string("SSL_connect failed: ") + buf);
-    else
-      return false;
+    throw std::runtime_error(std::string("SSL_connect failed: ") + buf);
   }
+
+  // === Verify certificate ===
+  long verify_result = SSL_get_verify_result(_ssl);
+  if (verify_result != X509_V_OK) {
+    throw std::runtime_error("Server certificate verification failed: " + std::string(X509_verify_cert_error_string(verify_result)));
+  }
+
   return true;
 #endif
 }

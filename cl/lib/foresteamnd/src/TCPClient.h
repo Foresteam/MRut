@@ -30,9 +30,9 @@ public:
   static constexpr uint16_t buffer_size = 4096;
 
 private:
-  char buffer[buffer_size];
-  RetryPolicy retryPolicy;
-  bool debug;
+  char _buffer[buffer_size];
+  RetryPolicy _retryPolicy;
+  bool _debug;
   /// @param dInitial Is the connection innitial, for debug message
   void Retry(bool dInitial = false);
   void LostConnection();
@@ -42,6 +42,7 @@ private:
   PLATFORM_ADDRESS _address;
 
   bool _useTls = false;
+  std::vector<unsigned char> _rootCertificate;
 #ifdef _WIN32
   SSL_CTX* _sslCtx = nullptr;
   SSL* _ssl = nullptr;
@@ -55,7 +56,8 @@ public:
   /// @deprecated used by the useless TCPServer (C++ seems to not be the best in this)
   TCPClient(PLATFORM_SOCKET socket, PLATFORM_ADDRESS address);
   /// @param host Either domain or IP
-  TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, bool useTls = true, bool debug = false);
+  TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, bool debug = false);
+  TCPClient(std::string host, uint16_t port, RetryPolicy retryPolicy, const std::vector<unsigned char>& rootCertificate, bool debug = false);
   TCPClient(const TCPClient& other);
   ~TCPClient();
   std::string GetHost() const;

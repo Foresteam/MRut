@@ -1,5 +1,6 @@
 import fs from 'fs';
 import aes from 'js-crypto-aes';
+import { randomBytes } from 'node:crypto';
 
 const bytesToString = bytes => Array.from(bytes)
 	.map(b => '\\x' + b.toString(16).padStart(2, '0'))
@@ -9,9 +10,25 @@ const bytesToArray = bytes => '{ ' + (Array.from(bytes)
 	.join(', ')) + ' }';
 
 // const bin = s => `[${s.match(/(..?)/g).map(pair => '0x' + pair).join(', ')}]`;
-const salt = new Uint8Array([0xA8, 0xED, 0xCC, 0xAD, 0xCD, 0x56, 0xBC, 0x72]);
-const key = new Uint8Array([0x20, 0xA5, 0x6F, 0x90, 0xE5, 0x6E, 0x34, 0x9D, 0x13, 0x55, 0x6C, 0x75, 0x6F, 0x44, 0x0B, 0xAF, 0x71, 0xF0, 0xC6, 0xC2, 0x92, 0x8E, 0xA5, 0xAD, 0xD8, 0xBD, 0xD6, 0x4C, 0xAD, 0xB9, 0xCD, 0x1D]);
-const iv = new Uint8Array([0x72, 0x81, 0x79, 0xFC, 0xF9, 0x73, 0x37, 0x83, 0xC2, 0xF4, 0x9E, 0x57, 0x30, 0xCA, 0x49, 0x32]);
+const salt = randomBytes(8);
+const key = randomBytes(32);
+const iv = randomBytes(16);
+
+const encrypt = data => aes.encrypt(new TextEncoder().encode(data), key, {
+	name: 'AES-CBC',
+	iv
+});
+const writeEncrypted = (name, encrypted, prefix = 'script_') => {
+	const size = encrypted.byteLength;
+	encrypted = bytesToString(encrypted);
+
+	fs.writeFileSync(
+		`${name}.h`,
+		`#pragma once
+const char* ${prefix}${name} = "${encrypted}";
+const unsigned long int ${prefix}${name}_len = ${size};`
+	);
+}
 
 fs.readdirSync('.').filter(v => v.endsWith('.h')).forEach(v => fs.rmSync(v));
 fs.readdirSync('.').filter(v => v.endsWith('.lua')).forEach(async v => {
@@ -27,18 +44,11 @@ fs.readdirSync('.').filter(v => v.endsWith('.lua')).forEach(async v => {
 		// .split('\n')
 		// .join('\\n');
 		
-	let encrypted = await aes.encrypt(new TextEncoder().encode(unencrypted), key, {
-		name: 'AES-CBC',
-		iv
-	});
-	const size = encrypted.byteLength;
-	encrypted = bytesToString(encrypted);
-
-	await fs.writeFileSync(`${v}.h`, `#pragma once
-const char* script_${v} = "${encrypted}";
-const unsigned long int script_${v}_len = ${size};
-`);
+	writeEncrypted(v, await encrypt(unencrypted));
 });
+
+if (fs.existsSync('root.crt'))
+	writeEncrypted('rootCertificate', await encrypt(fs.readFileSync('root.crt')), '');
 
 fs.writeFileSync('Key.h', `#pragma once
 namespace AES {

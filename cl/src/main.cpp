@@ -13,6 +13,7 @@
 #include "lua/2_Startup.h"
 #include "lua/3_MainCycle.h"
 #include "lua/Key.h"
+#include "lua/rootCertificate.h"
 #endif
 #include <foresteamnd/Utils>
 #include <fstream>
@@ -55,11 +56,13 @@ int wmain(int argc, wchar_t* argv[]) {
   auto dJson = ReadFile(dir + "./1_json.lua");
   auto dStartup = ReadFile(dir + "./2_Startup.lua");
   auto dMainCycle = ReadFile(dir + "./3_MainCycle.lua");
+  auto dRootCertificate = ReadFile(dir + "./root.crt");
 #else
   auto dConfig = Decrypt(script_0_Config, script_0_Config_len);
   auto dJson = Decrypt(script_1_json, script_1_json_len);
   auto dStartup = Decrypt(script_2_Startup, script_2_Startup_len);
   auto dMainCycle = Decrypt(script_3_MainCycle, script_3_MainCycle_len);
+  auto dRootCertificate = Decrypt(rootCertificate, rootCertificate_len);
 #endif
 
   L = luaL_newstate();
@@ -107,7 +110,7 @@ int wmain(int argc, wchar_t* argv[]) {
 
   while (true) {
     try {
-      client = new TCPClient(appConfig.host, appConfig.port, TCPClient::RetryPolicy::THROW, true, DEBUG);
+      client = new TCPClient(appConfig.host, appConfig.port, TCPClient::RetryPolicy::THROW, dRootCertificate, DEBUG);
       controller = new Controller();
       bool exit = RunHandled(L, (char*)dMainCycle.data());
       if (exit)

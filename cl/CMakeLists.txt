@@ -40,7 +40,7 @@ if(NOT DEMO_MODE)
     add_custom_target(luacompile ALL
         COMMAND node compile.js
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/lua
-        DEPENDS ${LUA_SOURCES}
+        DEPENDS ${LUA_SOURCES} ${CMAKE_SOURCE_DIR}/root.crt
         BYPRODUCTS ${LUA_HEADERS}
     )
 endif()
