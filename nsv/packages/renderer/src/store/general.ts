@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import type { IUser, ICmdLog } from '$types/Common';
-import { v4 } from 'uuid';
 
 export const useGeneralStore = defineStore('general', {
 	state: () => ({
@@ -40,7 +39,6 @@ export const useGeneralStore = defineStore('general', {
 		},
 		async fetchLogs() {
 			const logs = await window.backend.getLogs();
-			console.log(logs);
 			this.cmdLogs = logs;
 		},
 		async updateUser(id: number, data: Partial<IUser>) {

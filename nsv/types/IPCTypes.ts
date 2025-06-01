@@ -1,7 +1,9 @@
 import type { IUser, ICmdLog } from './Common';
+import type { ConfigData } from '../packages/main/src/backend/Config';
 
 export type MouseButton = 'LEFT' | 'RIGHT' | 'MIDDLE';
 export type { SpecialKeys } from '../packages/main/src/backend/common-types';
+export type { ConfigData } from '../packages/main/src/backend/Config';
 
 export interface BackendAPI {
 	exec: <T extends boolean = false>(line: string, targets?: number[], expectFeedback?: T) => Promise<T extends true ? Record<string, string[]> : void>;
@@ -12,6 +14,9 @@ export interface BackendAPI {
 	openConfigFolder: () => Promise<boolean>;
 	clearDb: () => Promise<any>;
 	updateCertificates: () => Promise<void>;
+
+	getConfig: () => Promise<ConfigData>;
+	updateConfig: (data: Partial<ConfigData>) => Promise<ConfigData>;
 
 	sendMouseButton: (params: { button: MouseButton; state: boolean; applyToAll?: boolean }) => Promise<void>;
 	sendMouseScroll: (params: { pixels: number; applyToAll?: boolean }) => Promise<void>;

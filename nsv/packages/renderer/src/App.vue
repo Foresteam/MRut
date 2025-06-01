@@ -8,16 +8,23 @@ import PConfirmDialog from 'primevue/confirmdialog';
 import PToast from 'primevue/toast';
 import { useGeneralStore } from '@/store/general';
 import { useRouter } from 'vue-router';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import type { MenuItem } from 'primevue/menuitem';
 import type { Routes } from './router';
 import '$types/IPCTypes';
 import { usePreferencesStore } from './store/preferences';
+import { storeToRefs } from 'pinia';
 
 const router = useRouter();
-const { l } = usePreferencesStore();
+const preferences = usePreferencesStore();
+const { l } = preferences;
+const { themeLight } = storeToRefs(preferences);
 const store = useGeneralStore();
 const { fetchUsers, fetchLogs } = store;
+
+watch(themeLight, (light) => {
+	document.body.classList.toggle('light', light);
+}, { immediate: true });
 
 type RouteName = Routes[number]['name'];
 const routeLocalizedNames: Record<RouteName, () => string> = {

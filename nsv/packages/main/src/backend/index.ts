@@ -12,6 +12,8 @@ import { Logger } from './Logger';
 import { SecureServer } from './protocol/SecureServer';
 import path from 'node:path';
 import { Certificates } from './Certififaces';
+import type { ConfigData } from './Config';
+import { Config } from './Config';
 
 let window = undefined as undefined | Electron.BrowserWindow;
 export const setWindow = (w: Electron.BrowserWindow) => window = w;
@@ -30,6 +32,7 @@ const onModifyUser = (client: Client, update: Partial<IUser>) => {
 };
 
 const logger = new Logger((params: Log) => ipcEmit('logCommand', params), () => commands.clients);
+const config = new Config();
 
 const server = new SecureServer(logger, onModifyUser, client => {
 	ipcEmit('setUser', client.public.id, client.public);
@@ -197,6 +200,13 @@ export function setupIPC() {
 		await Certificates.generate();
 		logger.log({ type: 'system', text: 'Certificates regenerated' });
 		await server.restart();
+	});
+
+	ipcHandle('getConfig', async () => config.getData());
+	ipcHandle('updateConfig', async (_, data) => {
+		for (const [k, v] of Object.entries(data))
+			config[k as keyof ConfigData] = v as ConfigData[keyof ConfigData];
+		return config.getData();
 	});
 
 	ipcHandle('sendMouseButton', async (_, { button, state, applyToAll }) => {

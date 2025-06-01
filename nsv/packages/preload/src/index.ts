@@ -2,8 +2,32 @@
  * @module preload
  */
 
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, webFrame } from 'electron';
 import type { BackendAPI, ExposedFrontend } from '$types/IPCTypes';
+
+webFrame.setVisualZoomLevelLimits(0.5, 4);
+
+window.addEventListener('keydown', (e) => {
+	const isCtrl = e.ctrlKey || e.metaKey; // macOS support
+
+	// Zoom in: Ctrl + =
+	if (isCtrl && (e.key === '=' || e.key === '+')) {
+		e.preventDefault();
+		webFrame.setZoomFactor(Math.min(webFrame.getZoomFactor() + 0.1, 4));
+	}
+
+	// Zoom out: Ctrl + -
+	if (isCtrl && e.key === '-') {
+		e.preventDefault();
+		webFrame.setZoomFactor(Math.max(webFrame.getZoomFactor() - 0.1, 0.5));
+	}
+
+	// Reset zoom: Ctrl + 0
+	if (isCtrl && e.key === '0') {
+		e.preventDefault();
+		webFrame.setZoomFactor(1.0);
+	}
+});
 
 /** Type wrapper */
 const exposeTyped = <T>(name: string, backend: T) => contextBridge.exposeInMainWorld(name, backend);
@@ -24,6 +48,10 @@ exposeTyped<BackendAPI>('backend', {
 	openConfigFolder: (...args) => ipcRenderer.invoke('openConfigFolder', ...args),
 	clearDb: (...args) => ipcRenderer.invoke('clearDb', ...args),
 	updateCertificates: (...args) => ipcRenderer.invoke('updateCertificates', ...args),
+
+	getConfig: (...args) => ipcRenderer.invoke('getConfig', ...args),
+	updateConfig: (...args) => ipcRenderer.invoke('updateConfig', ...args),
+
 	sendMouseButton: (...args) => ipcRenderer.invoke('sendMouseButton', ...args),
 	sendMouseScroll: (...args) => ipcRenderer.invoke('sendMouseScroll', ...args),
 	sendKey: (...args) => ipcRenderer.invoke('sendKey', ...args),

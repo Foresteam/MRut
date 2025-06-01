@@ -82,11 +82,16 @@ export class SecureServer {
   }
 
   async start() {
-    if (!await Certificates.isOpenSslInstalled()) {
-      this.#logger.log({ type: 'error', text: 'OpenSSL not found' });
-      return;
+    try {
+      await Certificates.generate();
     }
-    await Certificates.generate();
+    catch (err) {
+      if (!await Certificates.isOpenSslInstalled()) {
+        this.#logger.log({ type: 'error', text: 'Could not generate certificates: OpenSSL not found' });
+        return;
+      }
+      this.#logger.log({ type: 'error', text: 'Could not generate certificates', err });
+    }
     const certificates = Certificates.getExistingCertificates<true>();
     try {
       this.#server = tls.createServer({

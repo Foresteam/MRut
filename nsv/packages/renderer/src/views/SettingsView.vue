@@ -10,7 +10,7 @@ const pending = ref(false);
 
 const preferences = usePreferencesStore();
 const { l } = preferences;
-const { languageRussian } = storeToRefs(preferences);
+const { languageRussian, themeLight } = storeToRefs(preferences);
 
 const clearDb = async () => {
 	pending.value = true;
@@ -38,7 +38,13 @@ const updateCertificates = async () => {
       <div class="flex-col gap-l">
         <div class="flex-row items-center gap-m">
           <p-toggle-switch v-model="languageRussian" />
+          <i class="pi pi-globe" />
           {{ l().language }}
+        </div>
+        <div class="flex-row items-center gap-m">
+          <p-toggle-switch v-model="themeLight" />
+          <i :class="`pi pi-${themeLight ? 'sun' : 'moon'}`" />
+          {{ themeLight ? l().settingsTab.themeLightCaption : l().settingsTab.themeDarkCaption }}
         </div>
         <div class="flex-row gap-l">
           <p-btn

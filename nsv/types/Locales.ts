@@ -112,8 +112,17 @@ const en = {
     updateCertificates: 'Update certificates',
     updateCertificatesTooltip: 'Update server certificates',
     switchThemeTooltip: 'Switch theme',
-    themeLightCaption: 'Light',
-    themeDarkCaption: 'Dark',
+    themeLightCaption: 'Light theme',
+    themeDarkCaption: 'Dark theme',
+  },
+
+  serverLogs: {
+    clientConnected: 'Client connected',
+    clientDisconnected: 'Client lost connection',
+    generateCertificatesErrorOpenssl: 'Could not generate certificates: OpenSSL not found',
+    generateCertificatesError: 'Could not generate certificates',
+    serverStarted: 'Server started',
+    serverStartError: 'Failed to start server',
   },
 };
 const ru = {
@@ -228,8 +237,17 @@ const ru = {
     updateCertificates: 'Обновить сертификаты',
     updateCertificatesTooltip: 'Обновить серверные сертификаты',
     switchThemeTooltip: 'Переключить тему',
-    themeLightCaption: 'Светлая',
-    themeDarkCaption: 'Темная',
+    themeLightCaption: 'Светлая тема',
+    themeDarkCaption: 'Темная тема',
+  },
+
+  serverLogs: {
+    clientConnected: 'Client connected',
+    clientDisconnected: 'Client lost connection',
+    generateCertificatesErrorOpenssl: 'Could not generate certificates: OpenSSL not found',
+    generateCertificatesError: 'Could not generate certificates',
+    serverStarted: 'Server started',
+    serverStartError: 'Failed to start server',
   },
 } satisfies typeof en;
 

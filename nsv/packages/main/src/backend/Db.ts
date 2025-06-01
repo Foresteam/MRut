@@ -3,7 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 
-const tables = ['Client'] as const;
+const tables = ['Client', 'Config'] as const;
 export type Table = typeof tables[number];
 
 // Resolve %APPDATA% path (cross-platform)
@@ -38,6 +38,10 @@ export function get<T = string | number | boolean | object>(table: Table, key: s
   catch {
     return null;
   }
+}
+export function setIfEmpty(table: Table, key: string, value: string | number | boolean | object) {
+  if (get(table, key) === null)
+    set(table, key, value);
 }
 export function getAll<T = string | number | boolean | object>(table: Table) {
   const rows = db.prepare(`SELECT key, value FROM ${table}`).all() as { key: string; value: string }[];
