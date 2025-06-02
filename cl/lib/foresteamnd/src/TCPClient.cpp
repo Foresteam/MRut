@@ -226,7 +226,6 @@ char* TCPClient::ReceiveRawData(size_t* sz) {
     // read size prefix first (on TLS)
     size_t msgLen;
     int n = SSL_read(_ssl, &msgLen, sizeof msgLen);
-    cout << "read " << n << endl;
     if (n <= 0) {
       LostConnection();
       return nullptr;
@@ -454,7 +453,7 @@ bool TCPClient::InitializeTLS(const std::string& host) {
   long verify_result = SSL_get_verify_result(_ssl);
   if (verify_result != X509_V_OK) {
     if (_retryPolicy == THROW)
-      throw std::runtime_error("Server certificate verification failed: " + std::string(X509_verify_cert_error_string(verify_result)));
+      throw std::runtime_error("Server identity verification failed (fraud?): " + std::string(X509_verify_cert_error_string(verify_result)));
     return false;
   }
 

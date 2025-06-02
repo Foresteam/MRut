@@ -74,6 +74,8 @@ export class SecureServer {
     const setClientOffline = (e: Error | null) => {
       if (e)
         console.error(e);
+      if (!client)
+        return;
       client.public.online = false;
       this.#onModifyUser(client, { online: client.public.online });
       this.#logger.log({ type: 'system', text: en.serverLogs.clientDisconnected, targets: [client] });
