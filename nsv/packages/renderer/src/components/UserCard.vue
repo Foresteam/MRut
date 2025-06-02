@@ -1,7 +1,10 @@
 <template>
   <div class="user">
     <OnlineIndicator :value="user.online" />
-    <div style="overflow: hidden;">
+    <div
+      style="overflow: hidden;"
+      class="content"
+    >
       <div style=" word-wrap: break-word;">
         {{ user.name || user.hostname }} #{{ user.id }}
       </div>
@@ -15,16 +18,17 @@
             v-model="slotProps.option.connected"
             class="p-button-rounded"
         /> -->
-    <p-progress-spinner
+    <LoaderCircle
       v-if="user.processing"
-      stroke-width="5px"
+      size="32px"
+      color="var(--primary-color)"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
 import OnlineIndicator from '@/components/OnlineIndicator.vue';
-import PProgressSpinner from 'primevue/progressspinner';
+import LoaderCircle from '@/components/LoaderCircle.vue';
 import type { IUser } from '$types/Common';
 
 defineProps<{ user: IUser }>();
@@ -39,15 +43,10 @@ defineProps<{ user: IUser }>();
   max-width: 100%;
 }
 
-.user>div:nth-of-type(1) {
+.user>.content {
   display: flex;
   flex-flow: column;
   margin-left: 7pt;
   flex-grow: 1;
-}
-
-.user>div:nth-of-type(2) {
-  width: 35px;
-  height: 35px;
 }
 </style>

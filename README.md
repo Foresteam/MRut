@@ -1,25 +1,15 @@
 # Multi-target Remote udministration tool, AKA MRut
 
-## TODO
-* **FS management**
+## Roadmap
 * ~~**Autostart & install script**~~
   * Install system-wide (all users)
   * Updating
-* **Language**:
-  * ~~Basics~~
-  * Translate everything
-* ~~User renaming~~
-* ~~Store users (persistent)~~
-* **Take over controls:**
-  * ~~**Mouse**~~
-  * ~~**Keyboard**~~
-* Build in demo mode:
-  * ~~Client~~
-  * RSA demo key
 * Chat (complex af)
 * Bulk screencast (switch single/many in tab)
-* *Encryption*. Можно использовать такое. Будет в action handshake. Но нужно будет генерить клиентов и серверную часть через скрипт ы. https://chat.deepseek.com/a/chat/s/dd12b2d8-8138-413a-a408-4c00abf8a4ee Ышо: https://chat.deepseek.com/a/chat/s/139ca133-320c-4ecd-a5bc-10cc64a85d1a
-Прешарить ничего не будем. По умолчанию, клиент доверяет любому сертификату первому. Далее - нужно добавлять сертификаты через сервер доверенный. А на сервере вылезает вопрос, стоит ли доверять, если сертификат ранее не фигурировал или поменялся вдруг. Но это теория. А по факту надо сделать моки, и с ним пока что
+* Protocols
+  * Optimizations
+  * Mb use existing protocols (zmq tcp+udp)?
+  * Move streaming to WebRTC?
 
 ## How to run
 Install **Node.js 16**, **yarn**, MSVC (Visual Studio 2022), cmake...
@@ -41,12 +31,12 @@ To run debug:
 just use vscode...
 ```
 
-Release: i beleive it's done this way
+<!-- Release: i beleive it's done this way
 ## Build (Linux)
 ```bash
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release -j{NUMBER_OF_THREADS}
-```
+``` -->
 ## Build DEMO (Windows)
 Упрощенная сборка без шифрования, и с возможностью замены ключей без пересборки
 ```bash

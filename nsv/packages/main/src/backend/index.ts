@@ -55,6 +55,9 @@ const server = new SecureServer(logger, onModifyUser, client => {
 				return await server.performHandshake(client, handshake);
 			}
 			case Action.IDLE: {
+				client.public.processing = false;
+				onModifyUser(client, { processing: client.public.processing });
+
 				if (!netQ) {
 					return client.sendMessage(client.inputQueue.flush());
 				}
@@ -110,8 +113,6 @@ const server = new SecureServer(logger, onModifyUser, client => {
 				}
 				else
 					logger.log({ type: 'feedback', text: data.toString('utf-8'), sender: client });
-				client.public.processing = false;
-				onModifyUser(client, { processing: client.public.processing });
 				return;
 			case Action.SCREENCAST: {
 				if (!client.public.streaming) {

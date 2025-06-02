@@ -31,7 +31,7 @@ export class Client implements db.Serializable<IUser>, ClientContainer {
     this.public = {
       id: idCounter++,
       address: socket?.remoteAddress?.replaceAll('::ffff:', '') || '',
-      connected: true,
+      connected: false,
       online: true,
       processing: false,
       streaming: false,

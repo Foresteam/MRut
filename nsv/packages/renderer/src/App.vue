@@ -87,11 +87,18 @@ onMounted(() => {
       class="sexy-font title-2"
       style="flex-flow: column; line-height: 27px; text-align: left"
     >
-      <div class="_title2">
-        A footer
-      </div>
-      <div class="_title2">
-        ® Should this contain credits?
+      <div
+        class="_title2"
+        style="display: flex; align-items: center; gap: 16px"
+      >
+        <a
+          href="https://github.com/Foresteam/MRut"
+          style="color: var(--text-primary)"
+        ><i
+          class="pi pi-github"
+          style="font-size: 20pt"
+        ></i></a>
+        Foresteam, 2025 (AGPL 3.0)
       </div>
     </div>
   </div>
