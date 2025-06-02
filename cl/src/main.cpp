@@ -1,5 +1,6 @@
 #include "Screenshot.h"
 #include "global.h"
+#include "helpers/GeneralHelpers.h"
 #include "luaFunctions/LuaFunctions.h"
 #ifdef DEMO_MODE
 #include <filesystem>
@@ -7,7 +8,6 @@
 #include <plusaes/plusaes.hpp>
 
 #include "Installer.h"
-#include "helpers/GeneralHelpers.h"
 #include "lua/0_Config.h"
 #include "lua/1_json.h"
 #include "lua/2_Startup.h"
@@ -51,12 +51,12 @@ int wmain(int argc, wchar_t* argv[]) {
   lua_State* L;
 
 #ifdef DEMO_MODE
-  string dir = GetExecutableDirectory().string();
-  auto dConfig = ReadFile(dir + "./0_Config.lua");
-  auto dJson = ReadFile(dir + "./1_json.lua");
-  auto dStartup = ReadFile(dir + "./2_Startup.lua");
-  auto dMainCycle = ReadFile(dir + "./3_MainCycle.lua");
-  auto dRootCertificate = ReadFile(dir + "./root.crt");
+  auto dir = GlobalHelpers::GetExecutableDirectory();
+  auto dConfig = GlobalHelpers::ReadFile((dir / "0_Config.lua").string());
+  auto dJson = GlobalHelpers::ReadFile((dir / "1_json.lua").string());
+  auto dStartup = GlobalHelpers::ReadFile((dir / "2_Startup.lua").string());
+  auto dMainCycle = GlobalHelpers::ReadFile((dir / "3_MainCycle.lua").string());
+  auto dRootCertificate = GlobalHelpers::ReadFile((dir / "root.crt").string());
 #else
   auto dConfig = Decrypt(script_0_Config, script_0_Config_len);
   auto dJson = Decrypt(script_1_json, script_1_json_len);

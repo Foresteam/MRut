@@ -162,29 +162,26 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
-#-------------------------------------------------------------------------------
-# Post-Build Steps (Demo Mode Only)
-#-------------------------------------------------------------------------------
 if(DEMO_MODE AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CONFIGURATION_TYPES))
     if(WIN32)
-        add_custom_command(TARGET rut POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/*.lua"
-            COMMAND ${CMAKE_COMMAND} -E copy_directory 
-                "${CMAKE_SOURCE_DIR}/src/lua/"
-                "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/"
-            COMMENT "Updating Lua files for demo mode"
+        set(DELETE_CMD 
+            "cmd" "/c" 
+            "del /Q \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\*.lua\" & del /Q \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\*.crt\""
+        )
+        set(COPY_CMD 
+            "cmd" "/c" 
+            "copy /Y \"${CMAKE_SOURCE_DIR}\\src\\lua\\*.lua\" \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\\" & copy /Y \"${CMAKE_SOURCE_DIR}\\src\\lua\\*.crt\" \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\\""
+        )
+    elseif(UNIX AND NOT APPLE)
+        set(DELETE_CMD 
+            "bash" "-c" 
+            "rm -f \"${CMAKE_CURRENT_BINARY_DIR}/Release\"/*.lua \"${CMAKE_CURRENT_BINARY_DIR}/Release\"/*.crt"
+        )
+        set(COPY_CMD 
+            "bash" "-c" 
+            "cp -t \"${CMAKE_CURRENT_BINARY_DIR}/Release\" \"${CMAKE_SOURCE_DIR}/src/lua\"/*.lua \"${CMAKE_SOURCE_DIR}/src/lua\"/*.crt"
         )
     endif()
-endif()
-
-if(DEMO_MODE AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CONFIGURATION_TYPES))
-	if(WIN32)
-		set(DELETE_CMD "cmd" "/c" "del /Q \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\*.lua\"")
-		set(COPY_CMD "cmd" "/c" "copy /Y \"${CMAKE_SOURCE_DIR}\\src\\lua\\*.lua\" \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\\"")
-	elseif(UNIX AND NOT APPLE)
-		set(DELETE_CMD "bash" "-c" "rm ${CMAKE_CURRENT_BINARY_DIR}/Release/*.lua")
-		set(COPY_CMD "bash" "-c" "cp ${CMAKE_SOURCE_DIR}/src/lua/*.lua ${CMAKE_CURRENT_BINARY_DIR}/Release/")
-	endif()
 	add_custom_command(TARGET rut POST_BUILD
 		COMMAND ${DELETE_CMD}
 		COMMAND ${COPY_CMD}

@@ -70,7 +70,9 @@ namespace PLATFORM {
 
     _socket = socket(addrinfo->ai_family, addrinfo->ai_socktype, addrinfo->ai_protocol);
     if (_socket == INVALID_SOCKET) {
-      cerr << "OpenConnection failed: " << WSAGetLastError() << endl;
+      auto err = WSAGetLastError();
+      if (err != 0)
+        cerr << "OpenConnection failed: " << err << endl;
       freeaddrinfo(addrinfo);
       CloseConnection(_socket);
       return;
@@ -112,7 +114,9 @@ namespace PLATFORM {
 
       iResult = select(0, nullptr, &set, nullptr, &timeout);
       if (iResult <= 0) {
-        cerr << "OpenConnection failed: " << WSAGetLastError() << endl;
+        auto err = WSAGetLastError();
+        if (err != 0)
+          cerr << "OpenConnection failed: " << err << endl;
         // Timeout or error occurred
         freeaddrinfo(addrinfo);
         CloseConnection(_socket);
@@ -438,13 +442,20 @@ bool TCPClient::InitializeTLS(const std::string& host) {
   if (SSL_connect(_ssl) != 1) {
     char buf[256];
     ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));
-    throw std::runtime_error(std::string("SSL_connect failed: ") + buf);
+    if (_retryPolicy == THROW) {
+      if (std::string(buf) == "error:00000000:lib(0)::reason(0)")
+        throw std::runtime_error("Connection timed out");
+      throw std::runtime_error(std::string("SSL_connect failed: ") + buf);
+    }
+    return false;
   }
 
   // === Verify certificate ===
   long verify_result = SSL_get_verify_result(_ssl);
   if (verify_result != X509_V_OK) {
-    throw std::runtime_error("Server certificate verification failed: " + std::string(X509_verify_cert_error_string(verify_result)));
+    if (_retryPolicy == THROW)
+      throw std::runtime_error("Server certificate verification failed: " + std::string(X509_verify_cert_error_string(verify_result)));
+    return false;
   }
 
   return true;
