@@ -11,6 +11,7 @@
   --primary-color: rgb(50, 150, 255);
   --selected-pale: rgba(100, 181, 246, 0.16);
   --success-color: #5C7;
+  --warning-color: #FFE082;
   --primary-color-text: #000;
   --font-family:-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
   --surface-0: var(--surface-b);
@@ -58,6 +59,7 @@
   --primary-color: rgb(50, 150, 255);
   --selected-pale: rgba(50, 150, 255, 0.12);
   --success-color: #2c8;
+  --warning-color: #FFB300;
   --primary-color-text: #fff;
   --surface-0: var(--surface-b);
   --surface-50: #f2f2f2;
@@ -1411,7 +1413,7 @@
   background: #A33;
 }
 .p-password-panel .p-password-meter .p-password-strength.medium {
-  background: #FFE082;
+  background: var(--warning-color);
 }
 .p-password-panel .p-password-meter .p-password-strength.strong {
   background: var(--success-color);
@@ -1991,8 +1993,8 @@
 
 .p-button.p-button-warning, .p-buttonset.p-button-warning > .p-button, .p-splitbutton.p-button-warning > .p-button {
   color: var(--surface-b);
-  background: #FFE082;
-  border: 1px solid #FFE082;
+  background: var(--warning-color);
+  border: 1px solid var(--warning-color);
 }
 .p-button.p-button-warning:enabled:hover, .p-buttonset.p-button-warning > .p-button:enabled:hover, .p-splitbutton.p-button-warning > .p-button:enabled:hover {
   background: #ffd65c;
@@ -2009,33 +2011,33 @@
 }
 .p-button.p-button-warning.p-button-outlined, .p-buttonset.p-button-warning > .p-button.p-button-outlined, .p-splitbutton.p-button-warning > .p-button.p-button-outlined {
   background-color: transparent;
-  color: #FFE082;
+  color: var(--warning-color);
   border: 1px solid;
 }
 .p-button.p-button-warning.p-button-outlined:enabled:hover, .p-buttonset.p-button-warning > .p-button.p-button-outlined:enabled:hover, .p-splitbutton.p-button-warning > .p-button.p-button-outlined:enabled:hover {
   background: rgba(255, 224, 130, 0.04);
-  color: #FFE082;
+  color: var(--warning-color);
   border: 1px solid;
 }
 .p-button.p-button-warning.p-button-outlined:enabled:active, .p-buttonset.p-button-warning > .p-button.p-button-outlined:enabled:active, .p-splitbutton.p-button-warning > .p-button.p-button-outlined:enabled:active {
   background: rgba(255, 224, 130, 0.16);
-  color: #FFE082;
+  color: var(--warning-color);
   border: 1px solid;
 }
 .p-button.p-button-warning.p-button-text, .p-buttonset.p-button-warning > .p-button.p-button-text, .p-splitbutton.p-button-warning > .p-button.p-button-text {
   background-color: transparent;
-  color: #FFE082;
+  color: var(--warning-color);
   border-color: transparent;
 }
 .p-button.p-button-warning.p-button-text:enabled:hover, .p-buttonset.p-button-warning > .p-button.p-button-text:enabled:hover, .p-splitbutton.p-button-warning > .p-button.p-button-text:enabled:hover {
   background: rgba(255, 224, 130, 0.04);
   border-color: transparent;
-  color: #FFE082;
+  color: var(--warning-color);
 }
 .p-button.p-button-warning.p-button-text:enabled:active, .p-buttonset.p-button-warning > .p-button.p-button-text:enabled:active, .p-splitbutton.p-button-warning > .p-button.p-button-text:enabled:active {
   background: rgba(255, 224, 130, 0.16);
   border-color: transparent;
-  color: #FFE082;
+  color: var(--warning-color);
 }
 
 .p-button.p-button-help, .p-buttonset.p-button-help > .p-button, .p-splitbutton.p-button-help > .p-button {
@@ -2391,31 +2393,31 @@
 
 .p-splitbutton.p-button-warning.p-button-outlined > .p-button {
   background-color: transparent;
-  color: #FFE082;
+  color: var(--warning-color);
   border: 1px solid;
 }
 .p-splitbutton.p-button-warning.p-button-outlined > .p-button:enabled:hover, .p-splitbutton.p-button-warning.p-button-outlined > .p-button:not(button):not(a):not(.p-disabled):hover {
   background: rgba(255, 224, 130, 0.04);
-  color: #FFE082;
+  color: var(--warning-color);
 }
 .p-splitbutton.p-button-warning.p-button-outlined > .p-button:enabled:active, .p-splitbutton.p-button-warning.p-button-outlined > .p-button:not(button):not(a):not(.p-disabled):active {
   background: rgba(255, 224, 130, 0.16);
-  color: #FFE082;
+  color: var(--warning-color);
 }
 .p-splitbutton.p-button-warning.p-button-text > .p-button {
   background-color: transparent;
-  color: #FFE082;
+  color: var(--warning-color);
   border-color: transparent;
 }
 .p-splitbutton.p-button-warning.p-button-text > .p-button:enabled:hover, .p-splitbutton.p-button-warning.p-button-text > .p-button:not(button):not(a):not(.p-disabled):hover {
   background: rgba(255, 224, 130, 0.04);
   border-color: transparent;
-  color: #FFE082;
+  color: var(--warning-color);
 }
 .p-splitbutton.p-button-warning.p-button-text > .p-button:enabled:active, .p-splitbutton.p-button-warning.p-button-text > .p-button:not(button):not(a):not(.p-disabled):active {
   background: rgba(255, 224, 130, 0.16);
   border-color: transparent;
-  color: #FFE082;
+  color: var(--warning-color);
 }
 
 .p-splitbutton.p-button-help.p-button-outlined > .p-button {
@@ -5551,7 +5553,7 @@
   color: var(--surface-b);
 }
 .p-badge.p-badge-warning {
-  background-color: #FFE082;
+  background-color: var(--warning-color);
   color: var(--surface-b);
 }
 .p-badge.p-badge-danger {
@@ -5676,7 +5678,7 @@
   color: var(--surface-b);
 }
 .p-tag.p-tag-warning {
-  background-color: #FFE082;
+  background-color: var(--warning-color);
   color: var(--surface-b);
 }
 .p-tag.p-tag-danger {

@@ -9,6 +9,7 @@ import ToastService from 'primevue/toastservice';				//toast
 import ConfirmationService from 'primevue/confirmationservice';	//confirm
 import 'primeicons/primeicons.css';								//icons
 import '../f-you-in-the-blue/icons.css';						//icons
+import Tooltip from 'primevue/tooltip';
 
 
 createApp(App)
@@ -17,4 +18,5 @@ createApp(App)
 	.use(PrimeVue)
 	.use(ToastService)
 	.use(ConfirmationService)
+	.directive('tooltip', Tooltip)
 	.mount('#app');

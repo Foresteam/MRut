@@ -63,6 +63,10 @@ export const en = {
       selectFileSimpleButtonText: 'Simple script',
       selectFileJsButtonText: 'JS code',
     },
+    noConnectedUsers: {
+      tooltip: 'Select some users to send commands to',
+      warning: 'No users selected',
+    },
   },
   fileManager: {
     topPanel: {
@@ -242,6 +246,10 @@ const ru = {
       ],
       selectFileSimpleButtonText: 'Простой скрипт',
       selectFileJsButtonText: 'JS-код',
+    },
+    noConnectedUsers: {
+      tooltip: 'Выберите пользователей, которым отправлять команды',
+      warning: 'Не выбрано ни одного пользователя',
     },
   },
   fileManager: {

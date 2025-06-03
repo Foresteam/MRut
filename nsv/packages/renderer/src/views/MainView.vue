@@ -82,7 +82,17 @@ defineExpose({ cmdLogsPanel });
       class="ui-block list-panel"
     >
       <template #header>
-        {{ l().users }}
+        <div
+          class="flex-row gap-m"
+          style="align-items: center;"
+        >
+          {{ l().users }}
+          <i
+            v-tooltip.left="l().mainView.noConnectedUsers.tooltip"
+            class="pi pi-question-circle"
+            style="font-size: 16px;"
+          ></i>
+        </div>
       </template>
       <div
         v-for="user of store.verifiedUsers"
@@ -143,6 +153,17 @@ defineExpose({ cmdLogsPanel });
           </div>
         </div>
       </p-panel>
+      <div
+        v-show="!store.connectedUsers.length"
+        class="flex-row gap-m"
+        style="margin-top: 4px; align-items: center;"
+      >
+        <i
+          class="pi pi-exclamation-triangle"
+          style="font-size: 24px; color: var(--warning-color)"
+        />
+        {{ l().mainView.noConnectedUsers.warning }}
+      </div>
       <div class="ui-block-t flex-row set-wrapper">
         <p-input-text
           v-model="command"
@@ -178,8 +199,9 @@ defineExpose({ cmdLogsPanel });
 <style>
 #users-list {
   width: 30%;
-  min-width: 200px;
+  min-width: 250px;
   max-width: 350px;
+  flex-shrink: 0;
 }
 
 .list-panel {

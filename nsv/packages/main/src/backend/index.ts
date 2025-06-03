@@ -180,21 +180,26 @@ export function setupIPC() {
 	ipcHandle('getUsers', async () => commands.clients.map(v => v.public));
 	ipcHandle('getLogs', async () => logger.logs);
 	ipcHandle('updateUser', async (__, id, user) => {
-		const client = commands.clients[id];
+		const client = commands.clients.find(client => client.public.id === id);
 		if (!client)
 			return;
 		const netQ: string[] = [];
 		const clientPublic = client.public;
 		const oldPublic = _.cloneDeep(clientPublic);
+		let closeClient = false;
 		for (const [k, v] of Object.entries(user)) {
 			const _v = clientPublic[k];
 			// console.log('update!', id, k, v, _v);
-			if (k === 'streaming' && _v != v)
+			if (k === 'streaming' && _v !== v)
 				netQ.push(`SetIsStreaming(${v})`);
+			if (k === 'verified' && _v !== v)
+				closeClient = true;
 			clientPublic[k] = v;
 		}
 		if (!_.isEqual(oldPublic, clientPublic))
 			client.save();
+		if (closeClient)
+			client.close();
 		if (netQ.length)
 			commands.RunAnonymous({ logger }, [id], (clients, _netQ) => clients.forEach(c => _netQ(c).splice(_netQ(c).length, 0, ...netQ)));
 	});
