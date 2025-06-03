@@ -8,12 +8,15 @@ import PConfirmDialog from 'primevue/confirmdialog';
 import PToast from 'primevue/toast';
 import { useGeneralStore } from '@/store/general';
 import { useRouter } from 'vue-router';
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, toRaw, watch } from 'vue';
 import type { MenuItem } from 'primevue/menuitem';
 import type { Routes } from './router';
 import '$types/IPCTypes';
 import { usePreferencesStore } from './store/preferences';
 import { storeToRefs } from 'pinia';
+import { useConfirm } from 'primevue/useconfirm';
+import type { IUser } from '$types/Common';
+import * as _ from 'lodash';
 
 const router = useRouter();
 const preferences = usePreferencesStore();
@@ -36,6 +39,25 @@ const routeLocalizedNames: Record<RouteName, () => string> = {
 const items = computed(() => router.getRoutes().map(v => ({ label: routeLocalizedNames[v.name as RouteName](), to: v.path } satisfies MenuItem)));
 const TITLE = 'MRut';
 
+const confirm = useConfirm();
+const setUserVerified = (user: IUser, value: boolean) => store.updateUser(user.id, { verified: value, pendingVerification: false });
+const verifyUser = (user: IUser) => confirm.require({
+	icon: 'pi pi-check-square',
+	header: l().verifyUserAlert.title,
+	message: l().verifyUserAlert.text(user).join('\n'),
+	acceptLabel: l().verifyUserAlert.buttons.verify,
+	rejectLabel: l().verifyUserAlert.buttons.deny,
+	accept: () => setUserVerified(user, true),
+	reject: () => setUserVerified(user, false)
+});
+watch(() => store.users, (users) => {
+	for (const user of Object.values(users))
+		if (user.pendingVerification) {
+			user.pendingVerification = false;
+			verifyUser(user);
+		}
+}, { deep: true });
+
 onMounted(() => {
 	window.expose.logCommand(store.logCommand);
 	window.expose.modifyUser(store._modifyUser);
@@ -48,7 +70,18 @@ onMounted(() => {
 
 <template>
   <p-toast></p-toast>
-  <p-confirm-dialog></p-confirm-dialog>
+  <p-confirm-dialog>
+    <template #message="{ message: { message } }">
+      <div class="flex-col">
+        <span
+          v-for="(line, i) in message?.split('\n')"
+          :key="`message#${i}`"
+        >
+          {{ line }}
+        </span>
+      </div>
+    </template>
+  </p-confirm-dialog>
   <div id="header">
     <name-card />
     <p-tab-menu

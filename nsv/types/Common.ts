@@ -21,6 +21,8 @@ export interface IUser extends Partial<IUserMetadata> {
 	processing: boolean;
 	diffTimeMs?: number;
 	streaming: boolean;
+	verified?: boolean;
+	pendingVerification?: boolean;
 }
 export type { Log as ICmdLog } from '../packages/main/src/backend/Logger';
 

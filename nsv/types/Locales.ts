@@ -1,5 +1,7 @@
 import type { IUser } from './Common';
 
+export const userString = (user: IUser, russian: boolean) => `${russian ? 'Пользователь' : 'User'}#${user.id} ${user.name || user.hostname} (${user.address})`;
+
 export const en = {
   language: 'English',
   main: 'Main',
@@ -39,7 +41,14 @@ export const en = {
         label: 'Rename',
         prompt: {
           text: 'Enter new name',
-          title: (user: IUser) => `User#${user.id} ${user.name || user.hostname} (${user.address})`,
+          title: (user: IUser) => userString(user, false),
+        },
+      },
+      unVerify: {
+        label: 'Unverify',
+        prompt: {
+          text: 'The user will disappear from lists, and you won\'t see them until you clear cache',
+          title: (user: IUser) => `Unverify ${userString(user, false)}?`,
         },
       },
     },
@@ -126,7 +135,14 @@ export const en = {
     themeLightCaption: 'Light theme',
     themeDarkCaption: 'Dark theme',
   },
-
+  verifyUserAlert: {
+    title: 'New incoming connection',
+    text: (user: IUser) => [`Username: ${user.username}`, `PC name: ${user.hostname}`, `IP: ${user.address}`, `Hardware ID: ${user.hwid}`],
+    buttons: {
+      verify: 'Allow',
+      deny: 'Deny',
+    },
+  },
   serverLogs: {
     clientConnected: 'Client connected',
     clientDisconnected: 'Client lost connection',
@@ -205,7 +221,14 @@ const ru = {
         label: 'Переименовать',
         prompt: {
           text: 'Введите новое имя',
-          title: (user: IUser) => `Пользователь#${user.id} ${user.name || user.hostname} (${user.address})`,
+          title: (user: IUser) => userString(user, true),
+        },
+      },
+      unVerify: {
+        label: 'Убрать верификацию',
+        prompt: {
+          text: 'Пользователь пропадет из списков, и не будет отображаться, пока вы не очистите кеш сервера',
+          title: (user: IUser) => `Убрать верификацию ${userString(user, true)}?`,
         },
       },
     },
@@ -291,6 +314,14 @@ const ru = {
     switchThemeTooltip: 'Переключить тему',
     themeLightCaption: 'Светлая тема',
     themeDarkCaption: 'Темная тема',
+  },
+  verifyUserAlert: {
+    title: 'Новое входящее соединение',
+    text: (user: IUser) => [`Имя пользователя: ${user.username}`, `Имя компьютера: ${user.hostname}`, `IP: ${user.address}`, `ID оборудования: ${user.hwid}`],
+    buttons: {
+      verify: 'Разрешить',
+      deny: 'Запретить',
+    },
   },
 
   serverLogs: {

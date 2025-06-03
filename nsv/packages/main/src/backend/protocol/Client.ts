@@ -93,7 +93,9 @@ export class Client implements db.Serializable<IUser>, ClientContainer {
     return client;
   }
   serialize() {
-    return _.cloneDeep(this.public);
+    const rs = _.cloneDeep(this.public);
+    rs.pendingVerification = undefined;
+    return rs;
   }
   save() {
     db.set('Client', this.public.id.toString(), this.serialize());

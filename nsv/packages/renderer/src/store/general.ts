@@ -9,11 +9,14 @@ export const useGeneralStore = defineStore('general', {
 		lastFrame: null as string | null,
 	}),
 	getters: {
+		verifiedUsers(state) {
+			return Object.values(state.users).filter(v => v.verified);
+		},
 		connectedUsers(state) {
-			return Object.values(state.users).filter(v => v.connected);
+			return Object.values(state.users).filter(v => v.verified).filter(v => v.connected);
 		},
 		onlineUsers(state) {
-			return Object.values(state.users).filter(v => v.online);
+			return Object.values(state.users).filter(v => v.verified).filter(v => v.online);
 		},
 		targetUser(state) {
 			return state._targetUser?.connected ? state._targetUser : null;

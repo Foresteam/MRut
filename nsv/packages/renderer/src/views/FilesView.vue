@@ -236,6 +236,8 @@ const doRenameFiles = async (newNameTemplate: string) => {
 	loading.value = false;
 };
 const deleteFiles = () => confirm.require({
+	acceptLabel: l().ok,
+	rejectLabel: l().cancel,
 	message: l().fileManager.deleteFilesQuery(selectedFiles.value.length || 0),
 	header: l().confirmation,
 	icon: 'pi pi-exclamation-triangle',

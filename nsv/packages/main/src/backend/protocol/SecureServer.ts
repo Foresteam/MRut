@@ -31,7 +31,22 @@ export class SecureServer {
       client.public.username = handshake.username;
       client.public.hwid = handshake.hwid;
 
-      this.#onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username']));
+      if (client.public.verified === false) {
+        await new Promise<void>(resolve => setTimeout(resolve, 15000));
+        client.close();
+        return;
+      }
+      if (client.public.verified === undefined) {
+        if (!client.public.pendingVerification) {
+          client.public.pendingVerification = true;
+          this.#onModifyUser(client, _.pick(client.public, ['pendingVerification']));
+        }
+        await new Promise<void>(resolve => setTimeout(resolve, 5000));
+        client.close();
+        return;
+      }
+
+      this.#onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username', 'hwid']));
       await client.sendMessage(JSON.stringify({}));
       this.#logger.log({ type: 'system', text: en.serverLogs.clientConnected, targets: [client] });
     }

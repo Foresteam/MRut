@@ -14,6 +14,7 @@ import { IUser } from '$types/Common';
 import InputDialog from '@/components/InputDialog.vue';
 import { formatLog } from '../../../../shared/formatLogs';
 import CommandsFromFileDialog from '../components/CommandsFromFileDialog.vue';
+import { useConfirm } from 'primevue/useconfirm';
 
 const store = useGeneralStore();
 const { cmdLogs } = storeToRefs(store);
@@ -47,6 +48,16 @@ const renameUser = async (user: IUser, name: string) => store.updateUser(user.id
 const userRenameDialog = ref<ComponentPublicInstance<InstanceType<typeof InputDialog>>>();
 const commandsFromFileDialog = ref<ComponentPublicInstance<InstanceType<typeof CommandsFromFileDialog>>>();
 
+const confirm = useConfirm();
+const unVerifyUser = (user: IUser) => confirm.require({
+	icon: 'pi pi-thumbs-down',
+	header: l().mainView.userContext.unVerify.prompt.title(user),
+	message: l().mainView.userContext.unVerify.prompt.text,
+	acceptLabel: l().ok,
+	rejectLabel: l().cancel,
+	accept: () => store.updateUser(user.id, { verified: false })
+});
+
 const userCtxMenu = ref<ComponentPublicInstance<InstanceType<typeof PContextMenu>>>();
 const selectedUser = ref<IUser>();
 const onUserRightClick = ($event: MouseEvent, user: IUser) => {
@@ -55,6 +66,7 @@ const onUserRightClick = ($event: MouseEvent, user: IUser) => {
 };
 const userCtx: MenuItem[] = [
 	{ label: () => l().mainView.userContext.rename.label, icon: 'pi pi-pencil', command: () => userRenameDialog.value?.show() },
+	{ label: () => l().mainView.userContext.unVerify.label, icon: 'pi pi-thumbs-down', command: () => selectedUser.value && unVerifyUser(selectedUser.value) },
 ];
 
 defineExpose({ cmdLogsPanel });
@@ -73,7 +85,7 @@ defineExpose({ cmdLogsPanel });
         {{ l().users }}
       </template>
       <div
-        v-for="user of store.users"
+        v-for="user of store.verifiedUsers"
         :key="user.id"
         :class="{
           'flex-col': true,
@@ -88,6 +100,7 @@ defineExpose({ cmdLogsPanel });
       <p-context-menu
         ref="userCtxMenu"
         :model="userCtx"
+        style="width: 250px"
       />
     </p-panel>
     <div
