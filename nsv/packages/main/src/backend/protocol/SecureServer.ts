@@ -36,17 +36,18 @@ export class SecureServer {
         client.close();
         return;
       }
+      const updatedFields: (keyof IUser)[] = ['hostname', 'startTimeMs', 'diffTimeMs', 'username', 'hwid'];
       if (client.public.verified === undefined) {
         if (!client.public.pendingVerification) {
           client.public.pendingVerification = true;
-          this.#onModifyUser(client, _.pick(client.public, ['pendingVerification']));
+          this.#onModifyUser(client, _.pick(client.public, [...updatedFields, 'pendingVerification']));
         }
         await new Promise<void>(resolve => setTimeout(resolve, 5000));
         client.close();
         return;
       }
 
-      this.#onModifyUser(client, _.pick(client.public, ['hostname', 'startTimeMs', 'diffTimeMs', 'username', 'hwid']));
+      this.#onModifyUser(client, _.pick(client.public, updatedFields));
       await client.sendMessage(JSON.stringify({}));
       this.#logger.log({ type: 'system', text: en.serverLogs.clientConnected, targets: [client] });
     }

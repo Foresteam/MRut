@@ -230,6 +230,8 @@ export function setupIPC() {
 	});
 	ipcHandle('clearDb', async () => {
 		db.clear();
+		commands.clients.forEach(c => c.close());
+		commands.clients.splice(0, commands.clients.length, ...Client.loadAll());
 		logger.log({ type: 'system', text: en.serverLogs.dbCleared });
 	});
 	ipcHandle('updateCertificates', async () => {
