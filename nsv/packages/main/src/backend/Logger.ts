@@ -103,7 +103,7 @@ export class Logger {
     return this.#activeJournal = { path: logPath, stream: fs.createWriteStream(logPath, { encoding: 'utf-8', flags: 'a' }) };
   }
 
-  log(params: LogParams & { toSTDIO?: boolean }): void {
+  log(params: LogParams & { toSTDIO?: boolean; STDIOOnly?: boolean }): void {
     const toSTDIO = params.toSTDIO ?? true;
     const { text } = params;
 
@@ -127,6 +127,8 @@ export class Logger {
     }
     if (toSTDIO)
       (log.type === 'error' ? console.error : console.log)(formatLog(log, this.#getClients().map(c => c.public)).join(' '));
+    if (params.STDIOOnly)
+      return;
 
     this.logs.push(log);
     this.#logCommand(log);

@@ -23,8 +23,11 @@ export const setWindow = (w: Electron.BrowserWindow) => window = w;
 
 const ipcHandle = <T extends keyof BackendAPI>(name: T, f: (e: Electron.IpcMainInvokeEvent, ...args: Parameters<BackendAPI[T]>) => ReturnType<BackendAPI[T]>) =>
 	ipcMain.handle(name, f as any);
-const ipcEmit = <T extends keyof ExposedFrontend>(name: T, ...args: Parameters<Parameters<ExposedFrontend[T]>[0]>) =>
-	window?.webContents.send(name, ...args);
+const ipcEmit = <T extends keyof ExposedFrontend>(name: T, ...args: Parameters<Parameters<ExposedFrontend[T]>[0]>) => {
+	if (!window || window.isDestroyed() || !window.webContents || window.webContents.isDestroyed())
+		return;
+	return window.webContents.send(name, ...args);
+};
 
 /** @brief Load from DB */
 commands.clients.splice(0, commands.clients.length, ...Client.loadAll());

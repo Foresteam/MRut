@@ -87,13 +87,15 @@ export class SecureServer {
     });
 
     const setClientOffline = (e: Error | null) => {
+      if (!client.public.online)
+        return;
       if (e)
         console.error(e);
       if (!client)
         return;
       client.public.online = false;
       this.#onModifyUser(client, { online: client.public.online });
-      this.#logger.log({ type: 'system', text: en.serverLogs.clientDisconnected, targets: [client] });
+      this.#logger.log({ type: 'system', text: en.serverLogs.clientDisconnected, targets: [client], STDIOOnly: client.public.verified === false });
     };
     socket.on('error', setClientOffline);
     socket.on('close', setClientOffline);
