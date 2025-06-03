@@ -51,6 +51,7 @@ void LuaFunctions::Register(lua_State* L) {
       .addFunction("Sleep", LuaFunctions::Lua::System::Sleep)
       .addFunction("GetTimeMs", LuaFunctions::Lua::System::GetTimeMs)
       .addFunction("GetHwid", LuaFunctions::Lua::System::GetHwid)
+      .addFunction("GetUuidV4", LuaFunctions::Lua::System::GetUuidV4)
       .beginNamespace("dialog")
       .beginNamespace("type")
       .addConstant("BLANK", static_cast<int>(LuaFunctions::Lua::System::MESSAGEBOX_BLANK))

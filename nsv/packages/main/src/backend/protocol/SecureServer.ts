@@ -30,13 +30,14 @@ export class SecureServer {
       client.public.diffTimeMs = Date.now() - handshake.timestampMs;
       client.public.username = handshake.username;
       client.public.hwid = handshake.hwid;
+      client.public.uuid = handshake.uuid;
 
       if (client.public.verified === false) {
         await new Promise<void>(resolve => setTimeout(resolve, 15000));
         client.close();
         return;
       }
-      const updatedFields: (keyof IUser)[] = ['hostname', 'startTimeMs', 'diffTimeMs', 'username', 'hwid'];
+      const updatedFields: (keyof IUser)[] = ['hostname', 'startTimeMs', 'diffTimeMs', 'username', 'hwid', 'uuid'];
       if (client.public.verified === undefined) {
         if (!client.public.pendingVerification) {
           client.public.pendingVerification = true;
@@ -73,7 +74,7 @@ export class SecureServer {
       oneShot.dispose();
 
       const handshake: IUserHandshake = JSON.parse(data.toString('utf-8'));
-      const existingClient = commands.clients.find(v => v.public.hwid == handshake.hwid);
+      const existingClient = commands.clients.find(v => v.public.uuid == handshake.uuid);
       if (existingClient) {
         client = existingClient;
         client.onReconnect(socket);

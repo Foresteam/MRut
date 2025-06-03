@@ -7,6 +7,7 @@
 #else
 #include <plusaes/plusaes.hpp>
 
+#include "Hwid.h"
 #include "Installer.h"
 #include "lua/0_Config.h"
 #include "lua/1_json.h"
@@ -67,13 +68,15 @@ int wmain(int argc, wchar_t* argv[]) {
 
   L = luaL_newstate();
   appConfig = RunConfig(L, (char*)dConfig.data());
-#if !defined(DEMO_MODE) && !DEBUG
   Installer installer;
+  if (!installer.HasPermissions())
+    installer.RestartAsAdmin();
+  Hwid::GeneratePcUuidV4(installer.GetKeyPath());
+#if !defined(DEMO_MODE) && !DEBUG
   try {
     for (int i = 0; i < argc; i++) {
       if (std::wstring(argv[i]) == std::wstring(L"--uninstall") && installer.IsInstalled()) {
-        if (!installer.HasPermissions())
-          installer.RestartAsAdmin();
+
         installer.Uninstall();
         return 0;
       }

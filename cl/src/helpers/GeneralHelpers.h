@@ -12,7 +12,6 @@ namespace GlobalHelpers {
   std::wstring StringToWstring(const std::string& str, unsigned int encoding = 65001);
   std::string WstringToString(const std::wstring& wstr);
   std::string WindowsWstringToString(const std::wstring& wstr);
-
 } // namespace GlobalHelpers
 class Logger {
 public:

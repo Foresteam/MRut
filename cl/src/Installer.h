@@ -28,6 +28,7 @@ public:
 
   std::wstring GetInstallationDirectory();
   std::wstring GetTargetExecutablePath();
+  std::wstring GetKeyPath();
 
   InstallValidation ValidateInstallation() noexcept;
   bool IsInstalled() noexcept;
@@ -43,7 +44,6 @@ private:
   UninstallInfo ReadUninstallInfo();
   void WriteUninstallInfo(const UninstallInfo& info);
   void DeleteUninstallInfo();
-  std::wstring GetKeyPath();
 
   void InstallToFilesystem(const std::wstring& installPath);
 };

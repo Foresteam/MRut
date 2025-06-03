@@ -1,8 +1,12 @@
 #include "Hwid.h"
+#include "global.h"
+#include "helpers/GeneralHelpers.h"
+#include "helpers/InstallerHelpers.h"
 #include <Wbemidl.h>
 #include <comdef.h>
 #include <iomanip>
 #include <sstream>
+#include <uuid_v4.h>
 #include <windows.h>
 #pragma comment(lib, "wbemuuid.lib")
 
@@ -89,4 +93,28 @@ std::string Hwid::GetHwid() {
     return hwid = cpu;
   else
     return hwid = vol;
+}
+
+std::string uuidString;
+void Hwid::GeneratePcUuidV4(const std::wstring& registryPath) {
+  HKEY hKey;
+  DWORD disposition; // REG_CREATED_NEW_KEY or REG_OPENED_EXISTING_KEY
+  auto open = RegCreateKeyExW(HKEY_LOCAL_MACHINE, registryPath.c_str(), 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE | KEY_WOW64_64KEY, nullptr, &hKey,
+                      &disposition);
+  if (open != ERROR_SUCCESS)
+    throw Exception(Error::ERROR_REG_KEY_OPEN);
+  try {
+    uuidString = GlobalHelpers::WstringToString(InstallerHelpers::ReadStringValue(hKey, L"UUID"));
+  }
+  catch (std::exception) {
+    UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
+    UUIDv4::UUID uuid = uuidGenerator.getUUID();
+    InstallerHelpers::WriteStringValue(hKey, L"UUID", GlobalHelpers::StringToWstring(uuid.str()));
+
+    uuidString = uuid.str();
+  }
+  RegCloseKey(hKey);
+}
+std::string Hwid::GetPcUuidV4() noexcept {
+  return uuidString;
 }

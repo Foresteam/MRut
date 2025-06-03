@@ -66,6 +66,7 @@ endif()
 #-------------------------------------------------------------------------------
 add_executable(rut
     ${LUA_HEADERS}
+    lib/uuidv4/uuid_v4.h
     src/Controller.h
     src/global.h
     src/Installer.h
@@ -75,6 +76,7 @@ add_executable(rut
     src/luaFunctions/LuaFunctions.h
     src/Screenshot.h
     ${PLATFORM_EMBEDDED_LIBS}
+    lib/uuidv4/endianness.h
     src/global.cpp
     src/Controller.cpp
     src/Installer.cpp
@@ -129,6 +131,7 @@ target_include_directories(rut PUBLIC
     lib/plusaes/include
     lib/foresteamnd/include
     lib/libwebp/include
+    lib/uuidv4
 )
 
 #-------------------------------------------------------------------------------

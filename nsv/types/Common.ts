@@ -4,6 +4,7 @@ export type { Commands } from '../packages/main/src/backend/common-types';
 
 export interface IUserMetadata {
 	hwid: string;
+	uuid: string;
 	username: string;
 	hostname: string;
 	startTimeMs: number;

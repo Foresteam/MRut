@@ -62,6 +62,9 @@ long long LuaFunctions::Lua::System::GetTimeMs() {
 string LuaFunctions::Lua::System::GetHwid() {
   return Hwid::GetHwid();
 }
+string LuaFunctions::Lua::System::GetUuidV4() {
+  return Hwid::GetPcUuidV4();
+}
 
 #ifdef _WIN32
 LONG MapMessageBoxIcon(LuaFunctions::Lua::System::MessageBoxType type);

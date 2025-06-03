@@ -9,7 +9,8 @@ net.Send(
 		hostname = GetHostname(),
 		timestampMs = START_TIME,
 		username = GetUsername(),
-		hwid = GetHwid()
+		hwid = GetHwid(),
+		uuid = GetUuidV4()
 		-- tls...
 	})
 )
