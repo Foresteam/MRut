@@ -6,8 +6,9 @@
 #include <comdef.h>
 #include <iomanip>
 #include <sstream>
-#include <uuid_v4.h>
 #include <windows.h>
+
+#include <uuid_v4.h>
 #pragma comment(lib, "wbemuuid.lib")
 
 // --- Method 1: Volume serial number of C:\ drive ---
@@ -95,26 +96,37 @@ std::string Hwid::GetHwid() {
     return hwid = vol;
 }
 
+std::string GenerateUuidString() {
+  UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
+  UUIDv4::UUID uuid = uuidGenerator.getUUID();
+  return uuid.str();
+}
+
 std::string uuidString;
 void Hwid::GeneratePcUuidV4(const std::wstring& registryPath) {
+#if !DEBUG
   HKEY hKey;
   DWORD disposition; // REG_CREATED_NEW_KEY or REG_OPENED_EXISTING_KEY
-  auto open = RegCreateKeyExW(HKEY_LOCAL_MACHINE, registryPath.c_str(), 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE | KEY_WOW64_64KEY, nullptr, &hKey,
-                      &disposition);
+  auto open =
+      RegCreateKeyExW(HKEY_LOCAL_MACHINE, registryPath.c_str(), 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE | KEY_WOW64_64KEY, nullptr, &hKey, &disposition);
   if (open != ERROR_SUCCESS)
     throw Exception(Error::ERROR_REG_KEY_OPEN);
   try {
     uuidString = GlobalHelpers::WstringToString(InstallerHelpers::ReadStringValue(hKey, L"UUID"));
   }
   catch (std::exception) {
-    UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
-    UUIDv4::UUID uuid = uuidGenerator.getUUID();
-    InstallerHelpers::WriteStringValue(hKey, L"UUID", GlobalHelpers::StringToWstring(uuid.str()));
+    auto uuid = GenerateUuidString();
+    InstallerHelpers::WriteStringValue(hKey, L"UUID", GlobalHelpers::StringToWstring(uuid));
 
-    uuidString = uuid.str();
+    uuidString = uuid;
   }
   RegCloseKey(hKey);
+#endif
 }
 std::string Hwid::GetPcUuidV4() noexcept {
+#ifdef _DEBUG
+  return GetHwid();
+#else
   return uuidString;
+#endif
 }

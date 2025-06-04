@@ -2,13 +2,15 @@
 #include "global.h"
 #include "helpers/GeneralHelpers.h"
 #include "luaFunctions/LuaFunctions.h"
+
+#include "Hwid.h"
+#include "Installer.h"
+
 #ifdef DEMO_MODE
 #include <filesystem>
 #else
 #include <plusaes/plusaes.hpp>
 
-#include "Hwid.h"
-#include "Installer.h"
 #include "lua/0_Config.h"
 #include "lua/1_json.h"
 #include "lua/2_Startup.h"
@@ -69,9 +71,11 @@ int wmain(int argc, wchar_t* argv[]) {
   L = luaL_newstate();
   appConfig = RunConfig(L, (char*)dConfig.data());
   Installer installer;
+#if !DEBUG
   if (!installer.HasPermissions())
     installer.RestartAsAdmin();
   Hwid::GeneratePcUuidV4(installer.GetKeyPath());
+#endif
 #if !defined(DEMO_MODE) && !DEBUG
   try {
     for (int i = 0; i < argc; i++) {
