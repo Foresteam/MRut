@@ -108,11 +108,9 @@ const sendRequestTextInput = async () => {
 };
 
 const miscButtons: IMiscButton[] = [
-	{ label: 'Message box', icon: 'pi pi-question-circle', callback: () => sendOpenMessageBoxDialog.value?.show() },
-	{ label: 'Input box', icon: 'pi pi-ticket', callback: sendRequestTextInput },
-	{ label: 'Send Ctrl+Shift+Del', icon: 'pi pi-directions' },
-	// { label: 'Message box', icon: 'pi pi-exclamation-triangle' },
-	// { label: 'Message box', icon: 'pi pi-times-circle' },
+	{ label: () => l().screenView.misc.messageBox, icon: 'pi pi-question-circle', callback: () => sendOpenMessageBoxDialog.value?.show() },
+	{ label: () => l().screenView.misc.textInput, icon: 'pi pi-ticket', callback: sendRequestTextInput },
+	{ label: () => l().screenView.misc.sendTaskMgr, icon: 'pi pi-directions' }
 ];
 </script>
 

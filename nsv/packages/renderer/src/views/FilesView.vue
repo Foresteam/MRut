@@ -15,7 +15,6 @@ import type { MenuItem } from 'primevue/menuitem';
 import { useGeneralStore } from '@/store/general';
 import * as _ from 'lodash';
 import { storeToRefs } from 'pinia';
-import { z } from 'zod';
 import { usePreferencesStore } from '@/store/preferences';
 import { useFmHistory } from '@/composables/useFmHistory';
 import nodePath from 'path-browserify-esm';
@@ -441,7 +440,7 @@ const formatFileSize = (fileSize: number): string => {
       <p-input-text
         v-model="path"
         style="flex-grow: 1"
-        placeholder="Here must've been path..."
+        :placeholder="l().fileManager.topPanel.pathPlaceholder"
         @keyup.enter="history.push(path)"
         @focusout="history.push(path)"
       />

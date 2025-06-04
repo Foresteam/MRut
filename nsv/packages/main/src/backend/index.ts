@@ -106,7 +106,7 @@ const server = new SecureServer(logger, onModifyUser, client => {
 				// console.log('wt?', netQ, commandInQ?.accumulateResults, commandInQ?.clientIds);
 				if (commandInQ?.accumulateResults) {
 					commandInQ.results[client.public.id.toString()] ||= [];
-					for (const line of data.toString('utf-8').split('\\n'))
+					for (const line of data.toString('utf-8').split('\n'))
 						commandInQ.results[client.public.id.toString()].push(line);
 					if (!commandInQ.clientIds.length) {
 						// console.log('RESOLVE!', commandInQ.results);

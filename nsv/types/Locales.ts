@@ -75,6 +75,7 @@ export const en = {
       buttonToTop: 'To top',
       buttonRefresh: 'Refresh',
       buttonUpload: 'Upload',
+      pathPlaceholder: 'Here must\'ve been path...',
     },
     new: {
       newFolder: 'New folder',
@@ -102,6 +103,7 @@ export const en = {
     misc: {
       messageBox: 'Send Message box',
       textInput: 'Request text input',
+      sendTaskMgr: 'Send Ctrl+Shift+Del',
     },
   },
   textInputResults: {
@@ -259,6 +261,7 @@ const ru = {
       buttonToTop: 'Наверх',
       buttonRefresh: 'Обновить',
       buttonUpload: 'Загрузить',
+      pathPlaceholder: 'Здесь будет путь к папке',
     },
     new: {
       newFolder: 'Новая папка',
@@ -286,6 +289,7 @@ const ru = {
     misc: {
       messageBox: 'Отправить Message box',
       textInput: 'Запросить текстовый ввод',
+      sendTaskMgr: 'Отправить Ctrl+Shift+Del',
     },
   },
   textInputResults: {
