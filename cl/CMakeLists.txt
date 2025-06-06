@@ -175,6 +175,10 @@ if(DEMO_MODE AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CONFIGURATION_TYP
             "cmd" "/c" 
             "copy /Y \"${CMAKE_SOURCE_DIR}\\src\\lua\\*.lua\" \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\\" & copy /Y \"${CMAKE_SOURCE_DIR}\\src\\lua\\*.crt\" \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\\""
         )
+        set(CREATE_INSTALLER_CMD 
+            "cmd" "/c" 
+            "echo rut.exe --install > \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\install.bat\""
+        )
     elseif(UNIX AND NOT APPLE)
         set(DELETE_CMD 
             "bash" "-c" 
@@ -188,6 +192,7 @@ if(DEMO_MODE AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CONFIGURATION_TYP
 	add_custom_command(TARGET rut POST_BUILD
 		COMMAND ${DELETE_CMD}
 		COMMAND ${COPY_CMD}
+        COMMAND ${CREATE_INSTALLER_CMD}
 		COMMENT "Running post-build steps for rut"
 	)
 endif()

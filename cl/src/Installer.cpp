@@ -14,6 +14,8 @@
 namespace ih = InstallerHelpers;
 namespace gh = GlobalHelpers;
 
+std::vector<std::string> otherFiles = { "0_Config.lua", "1_json.lua", "2_Startup.lua", "3_MainCycle.lua", "root.crt" };
+
 std::wstring Installer::GetInstallationDirectory() {
   return ih::GetProgramFilesDirectory() + L"\\" + appConfig.appName;
 }
@@ -29,7 +31,7 @@ Installer::InstallValidation Installer::ValidateInstallation() noexcept {
   }
   catch (Exception) {
   }
-  return InstallValidation{.files = true, .registry = registry, .services = true};
+  return InstallValidation { .files = true, .registry = registry, .services = true };
 }
 bool Installer::IsInstalled() noexcept {
   auto validation = ValidateInstallation();
@@ -58,12 +60,12 @@ void Installer::Install(bool reinstall) {
   ih::CreateInteractiveLogonTask(appConfig.appTaskName, GetTargetExecutablePath(), installPath);
 
   UninstallInfo info = {
-      .DisplayName = appConfig.appName,
-      .UninstallString = std::format(L"\"{}\\{}\" --uninstall", installPath, appConfig.targetExecutableName),
-      .InstallLocation = installPath,
-      .Publisher = L"Foresteam",
-      .DisplayVersion = L"1.0.0",
-      .EstimatedSize = 1024 * 10,
+    .DisplayName = appConfig.appName,
+    .UninstallString = std::format(L"\"{}\\{}\" --uninstall", installPath, appConfig.targetExecutableName),
+    .InstallLocation = installPath,
+    .Publisher = L"Foresteam",
+    .DisplayVersion = L"1.0.0",
+    .EstimatedSize = 1024 * 10,
   };
   WriteUninstallInfo(info);
   std::cout << "Installation complete" << std::endl;
@@ -177,6 +179,12 @@ void Installer::InstallToFilesystem(const std::wstring& installPath) {
     DWORD err = GetLastError();
     std::wcerr << L"Failed to copy executable. Error: " << err << std::endl;
     throw Exception(Error::ERROR_INSTALLER_INSTALL_COPY_SELF);
+  }
+
+  for (auto otherFileName : otherFiles) {
+    auto source = std::filesystem::path(GlobalHelpers::GetExecutableDirectory()) / otherFileName;
+    auto dest = std::filesystem::path(installPath) / otherFileName;
+    CopyFileW(source.wstring().c_str(), dest.wstring().c_str(), FALSE);
   }
 
   ih::CreateUninstallBatch(installPath, appConfig.uninstallScriptName, gh::WstringToString(appConfig.targetExecutableName));

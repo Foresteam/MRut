@@ -107,8 +107,8 @@ void Hwid::GeneratePcUuidV4(const std::wstring& registryPath) {
 #if !DEBUG
   HKEY hKey;
   DWORD disposition; // REG_CREATED_NEW_KEY or REG_OPENED_EXISTING_KEY
-  auto open =
-      RegCreateKeyExW(HKEY_LOCAL_MACHINE, registryPath.c_str(), 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE | KEY_WOW64_64KEY, nullptr, &hKey, &disposition);
+  auto open = RegCreateKeyExW(HKEY_LOCAL_MACHINE, registryPath.c_str(), 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE | KEY_WOW64_64KEY | KEY_READ, nullptr,
+                              &hKey, &disposition);
   if (open != ERROR_SUCCESS)
     throw Exception(Error::ERROR_REG_KEY_OPEN);
   try {

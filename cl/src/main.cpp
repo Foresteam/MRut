@@ -76,7 +76,7 @@ int wmain(int argc, wchar_t* argv[]) {
     installer.RestartAsAdmin();
   Hwid::GeneratePcUuidV4(installer.GetKeyPath());
 #endif
-#if !defined(DEMO_MODE) && !DEBUG
+#if !DEBUG
   try {
     for (int i = 0; i < argc; i++) {
       if (std::wstring(argv[i]) == std::wstring(L"--uninstall") && installer.IsInstalled()) {
