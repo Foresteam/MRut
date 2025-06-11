@@ -46,6 +46,16 @@ const updateCertificates = async () => {
           <i :class="`pi pi-${themeLight ? 'sun' : 'moon'}`" />
           {{ themeLight ? l().settingsTab.themeLightCaption : l().settingsTab.themeDarkCaption }}
         </div>
+      </div>
+    </p-panel>
+    <p-panel
+      class="ui-block"
+      style="margin-top: 4px"
+    >
+      <template #header>
+        {{ l().settingsSystem }}
+      </template>
+      <div class="flex-col gap-l">
         <div class="flex-row gap-l">
           <p-btn
             icon="pi pi-database"
@@ -68,8 +78,6 @@ const updateCertificates = async () => {
             :loading="pending"
             @click="updateCertificates"
           />
-        </div>
-        <div class="flex-row">
         </div>
       </div>
     </p-panel>

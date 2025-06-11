@@ -5,6 +5,7 @@ export const userString = (user: IUser, russian: boolean) => `${russian ? 'По�
 export const en = {
   language: 'English',
   main: 'Main',
+  settingsSystem: 'System',
   ok: 'Ok',
   error: 'Error',
   cancel: 'Cancel',
@@ -191,6 +192,7 @@ export const en = {
 const ru = {
   language: 'Русский',
   main: 'Основные',
+  settingsSystem: 'Системные',
   ok: 'Ок',
   error: 'Ошибка',
   cancel: 'Отмена',
