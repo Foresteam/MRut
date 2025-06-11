@@ -10,6 +10,7 @@ import { usePreferencesStore } from '@/store/preferences';
 import MessageBoxDialog, { type MessageBoxOpenEvent } from '@/components/MessageBoxDialog.vue';
 import { Commands } from '$types/Common';
 import { useToast } from 'primevue/usetoast';
+import noStreamImage from '@/assets/no_stream.webp';
 
 const toast = useToast();
 const store = useGeneralStore();
@@ -39,7 +40,7 @@ const doStream = computed({
 	set: v => streamOf.value && store.updateUser(streamOf.value.id, { streaming: v }),
 });
 
-const streamURL = computed(() => store.lastFrame || '/assets/no_stream.webp');
+const streamURL = computed(() => store.lastFrame || noStreamImage);
 
 const streamView = ref<HTMLElement | null>(null);
 withMouseToServer({ el: streamView, send: controls });

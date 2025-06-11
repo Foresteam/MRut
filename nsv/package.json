@@ -78,7 +78,7 @@
     "zod": "^3.24.2"
   },
   "lint-staged": {
-    "*.{ts,vue,js,html}": [
+    "*.{ts,vue,js}": [
       "eslint --ext js,mjs,cjs,ts,mts,cts,vue --fix"
     ]
   },
