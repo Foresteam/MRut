@@ -16,13 +16,13 @@ const config = {
     output: 'dist',
     buildResources: 'buildResources',
   },
-  nsis: {
+  msi: {
     oneClick: false,
     perMachine: false,
     runAfterFinish: false
   },
   win: {
-    target: 'nsis'
+    target: 'msi'
   },
   linux: {
     target: 'flatpak'

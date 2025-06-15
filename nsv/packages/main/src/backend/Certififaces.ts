@@ -7,13 +7,22 @@ function runCommand(command: string, ...args: string[]) {
   return new Promise<void>((resolve, reject) => {
     const proc = spawn(command, args);
 
-    proc.on('error', reject);
+    proc.on('error', err => reject(err instanceof Error ? err : new Error(String(err))));
+
+    let stderr = '';
+    let stdout = '';
+    proc.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+    proc.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
 
     proc.on('close', (code: number) => {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`${command} exited with code ${code}`));
+        reject(new Error(`${command} exited with code ${code}: ${stdout}\t${stderr}`));
       }
     });
   });

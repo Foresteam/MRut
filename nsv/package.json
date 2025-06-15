@@ -7,9 +7,7 @@
     "npm": ">=10.8.2"
   },
   "author": {
-    "email": "kozackunisoft@gmail.com",
-    "name": "Alex Kozack",
-    "url": "https://kozack.me"
+    "name": "Foresteam"
   },
   "main": "packages/main/dist/index.cjs",
   "scripts": {

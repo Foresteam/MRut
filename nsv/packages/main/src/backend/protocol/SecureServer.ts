@@ -112,7 +112,7 @@ export class SecureServer {
         this.#logger.log({ type: 'error', text: en.serverLogs.generateCertificatesErrorOpenssl });
         return;
       }
-      this.#logger.log({ type: 'error', text: en.serverLogs.generateCertificatesError, err });
+      this.#logger.log({ type: 'error', text: en.serverLogs.generateCertificatesError, err: err instanceof Error ? { message: err.message } : err });
     }
     const certificates = Certificates.getExistingCertificates<true>();
     try {

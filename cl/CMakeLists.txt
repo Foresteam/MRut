@@ -196,3 +196,15 @@ if(DEMO_MODE AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CONFIGURATION_TYP
 		COMMENT "Running post-build steps for rut"
 	)
 endif()
+if(NOT DEMO_MODE AND (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_CONFIGURATION_TYPES))
+    if(WIN32)
+        set(CREATE_INSTALLER_CMD 
+            "cmd" "/c" 
+            "echo rut.exe --install > \"${CMAKE_CURRENT_BINARY_DIR}\\$<CONFIG>\\install.bat\""
+        )
+    endif()
+    add_custom_command(TARGET rut POST_BUILD
+      COMMAND ${CREATE_INSTALLER_CMD}
+      COMMENT "Running post-build steps for rut"
+	)
+endif()
