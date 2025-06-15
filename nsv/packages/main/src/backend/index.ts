@@ -62,14 +62,14 @@ const server = new SecureServer(logger, onModifyUser, client => {
 				onModifyUser(client, { processing: client.public.processing });
 
 				if (!netQ) {
-					return client.sendMessage(client.inputQueue.flush());
+					return await client.sendMessage(client.inputQueue.flush());
 				}
 				let todo = netQ.queue?.splice(0, 1)[0];
 				if (!todo) {
 					client.netQueue.splice(0, 1);
 					updateNetQ();
 					if (!netQ)
-						return client.sendMessage(client.inputQueue.flush());
+						return await client.sendMessage(client.inputQueue.flush());
 					todo = netQ.queue?.splice(0, 1)[0];
 				}
 				// console.log('q', netQ, netQ.queue.length, commandInQ && commandInQ.accumulateResults);
@@ -81,7 +81,7 @@ const server = new SecureServer(logger, onModifyUser, client => {
 					}
 				}
 				if (!todo)
-					return client.sendMessage(client.inputQueue.flush());
+					return await client.sendMessage(client.inputQueue.flush());
 				if (typeof (todo) == 'string' || todo instanceof Buffer || typeof todo === 'function')
 					todo = [todo];
 				for (const task of todo) {
@@ -91,12 +91,12 @@ const server = new SecureServer(logger, onModifyUser, client => {
 					}
 					if (task && task.length > 0) {
 						if (task instanceof Buffer)
-							client.sendMessage(task);
+							await client.sendMessage(task);
 						else
-							client.sendMessage([client.inputQueue.flush(), task].join(';'));
+							await client.sendMessage([client.inputQueue.flush(), task].join(';'));
 					}
 					else
-						client.sendMessage(client.inputQueue.flush());
+						await client.sendMessage(client.inputQueue.flush());
 				}
 				client.public.processing = true;
 				onModifyUser(client, { processing: client.public.processing });
@@ -106,7 +106,7 @@ const server = new SecureServer(logger, onModifyUser, client => {
 				// console.log('wt?', netQ, commandInQ?.accumulateResults, commandInQ?.clientIds);
 				if (commandInQ?.accumulateResults) {
 					commandInQ.results[client.public.id.toString()] ||= [];
-					for (const line of data.toString('utf-8').split('\n'))
+					for (const line of data.toString('utf-8').split('\n').flatMap(ss => ss.split('\\n')))
 						commandInQ.results[client.public.id.toString()].push(line);
 					if (!commandInQ.clientIds.length) {
 						// console.log('RESOLVE!', commandInQ.results);

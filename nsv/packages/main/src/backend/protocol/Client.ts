@@ -47,13 +47,23 @@ export class Client implements db.Serializable<IUser>, ClientContainer {
     if (this.#reader)
       this.#reader.cleanup();
     this.#reader = new MessageReader();
+
+    const q: Buffer[] = [];
+    let runningQ = false;
     this.#socket.on('data', async data => {
       if (!this.#reader)
         throw new Error('No reader?!');
-      await this.#reader.read(data, async message => {
-        for (const listener of this.#onMessage)
-          await message instanceof listener[0] && listener[1](message);
-      });
+      q.push(data);
+      if (runningQ)
+        return;
+
+      runningQ = true;
+      while (q.length)
+        await this.#reader.read(q.splice(0, 1)[0], async message => {
+          for (const listener of this.#onMessage)
+            await message instanceof listener[0] && listener[1](message);
+        });
+      runningQ = false;
     });
   }
   close() {

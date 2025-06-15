@@ -11,6 +11,7 @@ void LuaFunctions::waitReceive() {
 
 bool LuaFunctions::sendFile(const int code, char* buffer, size_t size) {
   bool result = client->SendData({ { reinterpret_cast<const char*>(&code), sizeof(char) }, { buffer, size } });
+  // Sleep(500);
   // waitReceive();
   return result;
 }

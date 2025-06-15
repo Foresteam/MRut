@@ -121,3 +121,18 @@ describe('Read file message', async () => {
   test('file exists', () => expect(exists).toBe(true));
   test('data matches', () => expect(exists && fs.readFileSync(testFilePath).toString('utf-8')).toBe(handshakeMessageText));
 });
+
+describe('Read file message and data', async () => {
+  const reader = new MessageReader();
+  const result: (FileMessage | Message)[] = [];
+  reader.expectFile(testFilePath);
+  await reader.read(Buffer.concat([fileMessage, handshakeMessage]), msg => result.push(msg as FileMessage));
+  test('received 2 messages', () => expect(result.length).toBe(2));
+  const exists = fs.statSync(testFilePath).isFile();
+  test('message is a file message', () => expect(result[0]).toBeInstanceOf(FileMessage));
+  test('message.path matches', () => expect((result[0] as FileMessage)?.path).toBe(testFilePath));
+  test('file exists', () => expect(exists).toBe(true));
+  test('data matches', () => expect(exists && fs.readFileSync(testFilePath).toString('utf-8')).toBe(handshakeMessageText));
+  test('action matches', () => expect(result[1].action).toEqual(Action.HANDSHAKE));
+  test('content matches', () => expect(result[1].data?.toString('utf-8')).toEqual(handshakeMessageText));
+});

@@ -279,7 +279,7 @@ bool TCPClient::SendDataRaw(const char* data, size_t size) {
   if (_useTls) {
     size_t offset = 0;
     while (offset < size) {
-      int written = SSL_write(_ssl, data + offset, int(size - offset));
+      int written = SSL_write(_ssl, const_cast<char*>(data + offset), int(size - offset));
       if (written <= 0) {
         LostConnection();
         return false;
@@ -311,6 +311,7 @@ bool TCPClient::SendData(const std::vector<std::pair<const char*, size_t>>& data
   for (size_t i = 0; i < data.size(); i++)
     totalSize += data[i].second;
   // now sends size as well
+  // std::cout << totalSize << std::endl;
   bool result = SendDataRaw(reinterpret_cast<char*>(&totalSize), sizeof(size_t));
   for (size_t i = 0; i < data.size() && result; i++)
     result &= SendDataRaw(data[i].first, data[i].second);
