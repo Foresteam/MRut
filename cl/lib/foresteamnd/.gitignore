@@ -2,4 +2,4 @@
 build
 extracted
 include
-!lib
+!openssl/**
